@@ -113,6 +113,16 @@
     .fpi-step-panel { display: none; }
     .fpi-step-panel.active { display: block; }
 
+    /* validation states */
+    .fpi-input.is-invalid, .fpi-select.is-invalid { border-color: var(--danger); background: #fdf3f2; }
+    .fpi-invalid-feedback { font-size: 10px; color: var(--danger); margin-top: 2px; }
+    .fpi-tab-btn.has-error { color: var(--danger); }
+    .fpi-tab-btn.has-error::after { content: ' !'; font-weight: 700; }
+    .fpi-form-error-banner {
+        background: #fdecea; border: 1px solid #f5c6c2; color: #842029; border-radius: 6px;
+        padding: 10px 14px; font-size: 11.5px; margin-bottom: 14px;
+    }
+
     /* UBO determination tool (embedded) */
     .ubo-card { background: #fff; border: 1px solid var(--gray200); border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
     .ubo-card-title { font-size: 14px; font-weight: 600; color: var(--gray900); margin-bottom: 12px; }
@@ -131,6 +141,10 @@
     @if (session('status'))
         <div class="flash-success">{{ session('status') }}</div>
     @endif
+
+    <div class="fpi-form-error-banner" id="fpiErrorBanner" style="display:none">
+        Please correct the highlighted fields below before saving.
+    </div>
 
     <form class="fpi-container" method="POST" action="{{ route('fpi.store') }}" id="fpiForm">
         @csrf
@@ -163,6 +177,7 @@
                     <div class="fpi-form-group">
                         <label class="fpi-label">Title <span class="fpi-req">*</span></label>
                         <select class="fpi-select" name="nameTitle">
+                            <option value="" @selected($form['nameTitle'] === '')>Select</option>
                             @foreach (['M/S' => 'M/s', 'MR' => 'Mr', 'MRS' => 'Mrs', 'MS' => 'Ms'] as $v => $l)
                                 <option value="{{ $v }}" @selected($form['nameTitle'] === $v)>{{ $l }}</option>
                             @endforeach
@@ -175,6 +190,7 @@
                     <div class="fpi-form-group">
                         <label class="fpi-label">Ever known by another name? <span class="fpi-req">*</span></label>
                         <select class="fpi-select" name="knownByAnotherName" id="knownByAnotherName">
+                            <option value="" @selected($form['knownByAnotherName'] === '')>Select</option>
                             <option value="NO" @selected($form['knownByAnotherName'] === 'NO')>No</option>
                             <option value="YES" @selected($form['knownByAnotherName'] === 'YES')>Yes</option>
                         </select>
@@ -323,8 +339,9 @@
                 <div class="fpi-card-heading">Step 4: Beneficial Ownership Information</div>
                 <div class="fpi-grid" style="margin-bottom:16px">
                     <div class="fpi-form-group" style="grid-column: span 2">
-                        <label class="fpi-label">Does the entity have Ultimate Beneficial Owners (UBOs)?</label>
+                        <label class="fpi-label">Does the entity have Ultimate Beneficial Owners (UBOs)? <span class="fpi-req">*</span></label>
                         <select class="fpi-select" name="hasUbos" id="hasUbos">
+                            <option value="" @selected($form['hasUbos'] === '')>Select</option>
                             <option value="YES" @selected($form['hasUbos'] === 'YES')>Yes</option>
                             <option value="NO" @selected($form['hasUbos'] === 'NO')>No</option>
                         </select>
@@ -350,6 +367,7 @@
                     <div class="fpi-form-group">
                         <label class="fpi-label">Gross Annual Income</label>
                         <select class="fpi-select" name="incomeRange">
+                            <option value="" @selected($form['incomeRange'] === '')>Select</option>
                             @foreach (['UNDER_50K' => 'Under $50,000', '50K_250K' => '$50,000 - $250,000', '250K_1M' => '$250,000 - $1,000,000', 'ABOVE_1M' => 'Above $1,000,000'] as $v => $l)
                                 <option value="{{ $v }}" @selected($form['incomeRange'] === $v)>{{ $l }}</option>
                             @endforeach
@@ -367,15 +385,17 @@
                 <div class="fpi-card-heading">Step 6: Category & Regulatory Classification</div>
                 <div class="fpi-grid">
                     <div class="fpi-form-group">
-                        <label class="fpi-label">FPI Category</label>
+                        <label class="fpi-label">FPI Category <span class="fpi-req">*</span></label>
                         <select class="fpi-select" name="fpiCategory">
+                            <option value="" @selected($form['fpiCategory'] === '')>Select</option>
                             <option value="CAT_I" @selected($form['fpiCategory'] === 'CAT_I')>Category I</option>
                             <option value="CAT_II" @selected($form['fpiCategory'] === 'CAT_II')>Category II</option>
                         </select>
                     </div>
                     <div class="fpi-form-group">
-                        <label class="fpi-label">Regulatory Status</label>
+                        <label class="fpi-label">Regulatory Status <span class="fpi-req">*</span></label>
                         <select class="fpi-select" name="regulatoryStatus">
+                            <option value="" @selected($form['regulatoryStatus'] === '')>Select</option>
                             <option value="REGULATED" @selected($form['regulatoryStatus'] === 'REGULATED')>Regulated</option>
                             <option value="UNREGULATED" @selected($form['regulatoryStatus'] === 'UNREGULATED')>Unregulated</option>
                         </select>
@@ -397,8 +417,9 @@
                     <div class="fpi-form-group"><label class="fpi-label">Bank Name</label><input class="fpi-input" type="text" name="bankName" value="{{ $form['bankName'] }}"></div>
                     <div class="fpi-form-group"><label class="fpi-label">Account Number</label><input class="fpi-input" type="text" name="bankAccount" value="{{ $form['bankAccount'] }}"></div>
                     <div class="fpi-form-group">
-                        <label class="fpi-label">Account Type</label>
+                        <label class="fpi-label">Account Type <span class="fpi-req">*</span></label>
                         <select class="fpi-select" name="bankAccountType">
+                            <option value="" @selected($form['bankAccountType'] === '')>Select</option>
                             @foreach (['NRE' => 'NRE', 'NRO' => 'NRO', 'ESCROW' => 'Escrow'] as $v => $l)
                                 <option value="{{ $v }}" @selected($form['bankAccountType'] === $v)>{{ $l }}</option>
                             @endforeach
@@ -537,7 +558,10 @@
             el.addEventListener('click', () => goTo(el.getAttribute('data-step')));
         });
         prevBtn.addEventListener('click', () => { if (current > 0) { current--; render(); } });
-        nextBtn.addEventListener('click', () => { if (current < steps.length - 1) { current++; render(); } });
+        nextBtn.addEventListener('click', () => {
+            if (!validateStep(steps[current].id)) return;   // block advancing on invalid step
+            if (current < steps.length - 1) { current++; render(); }
+        });
 
         // FAQ collapse
         let faqOpen = true;
@@ -581,6 +605,146 @@
         Object.values(regMap).forEach(reg => {
             document.querySelector(`[name="${reg}"]`).addEventListener('input', () => { if (sameAddress.checked) syncComm(); });
         });
+
+        // ───────────────── Client-side validation (mirrors server) ─────────────────
+        const form = document.getElementById('fpiForm');
+        const errorBanner = document.getElementById('fpiErrorBanner');
+
+        const REQUIRED = {
+            nameTitle: 'Title', entityName: 'Entity Name', knownByAnotherName: 'This field',
+            placeOfIncorporation: 'Place of Incorporation', countryOfIncorporation: 'Country of Incorporation',
+            hasUbos: 'This field', fpiCategory: 'FPI Category', regulatoryStatus: 'Regulatory Status',
+            pan: 'Indian PAN', bankAccountType: 'Account Type', signatureName: 'Authorized Signatory Name',
+        };
+        const PATTERNS = {
+            pan: { re: /^[A-Za-z]{5}[0-9]{4}[A-Za-z]$/, msg: 'PAN must be 5 letters, 4 digits, then 1 letter (e.g. AAACG1234F).' },
+            email: { re: /^[^@\s]+@[^@\s]+\.[^@\s]+$/, msg: 'Enter a valid email address.' },
+            lei: { re: /^[A-Za-z0-9]{20}$/, msg: 'LEI must be 20 alphanumeric characters.' },
+        };
+
+        function fieldEl(name) { return form.querySelector(`[name="${name}"]`); }
+        function stepOf(el) { const p = el && el.closest('.fpi-step-panel'); return p ? p.getAttribute('data-panel') : null; }
+
+        function clearError(el) {
+            if (!el) return;
+            el.classList.remove('is-invalid');
+            const grp = el.closest('.fpi-form-group') || el.parentElement;
+            const fb = grp && grp.querySelector('.fpi-invalid-feedback');
+            if (fb) fb.remove();
+        }
+        function setError(el, msg) {
+            if (!el) return;
+            el.classList.add('is-invalid');
+            const grp = el.closest('.fpi-form-group') || el.parentElement;
+            if (grp && !grp.querySelector('.fpi-invalid-feedback')) {
+                const fb = document.createElement('div');
+                fb.className = 'fpi-invalid-feedback';
+                fb.textContent = msg;
+                grp.appendChild(fb);
+            }
+            // clear inline error as soon as the user edits the field
+            el.addEventListener('input', () => clearError(el), { once: true });
+            el.addEventListener('change', () => clearError(el), { once: true });
+        }
+
+        // Validate a set of field names; returns array of {name, msg}
+        function runRules(names) {
+            const errs = [];
+            const val = n => { const e = fieldEl(n); return e ? (e.value || '').trim() : ''; };
+
+            names.forEach(n => {
+                const el = fieldEl(n);
+                if (!el || el.disabled) return;
+                clearError(el);
+
+                // required
+                if (REQUIRED[n] && !val(n)) { errs.push({ name: n, msg: `${REQUIRED[n]} is required.` }); return; }
+                // pattern (only when a value is present)
+                if (PATTERNS[n] && val(n) && !PATTERNS[n].re.test(val(n))) { errs.push({ name: n, msg: PATTERNS[n].msg }); return; }
+            });
+
+            // conditional: other entity name when "known by another name" = YES
+            if (names.includes('otherEntityName') && knownSel.value === 'YES' && !val('otherEntityName')) {
+                errs.push({ name: 'otherEntityName', msg: 'Other Entity Name is required.' });
+            }
+            // conditional: UBO block when hasUbos = YES
+            if (hasUbos.value === 'YES') {
+                [['uboName', 'Full Name'], ['uboDob', 'Date of Birth'], ['uboNationality', 'Nationality'],
+                 ['uboPassport', 'Passport / National ID'], ['uboOwnership', 'Ownership %'], ['uboAddress', 'Residential Address']]
+                .forEach(([n, label]) => {
+                    if (names.includes(n) && !val(n)) errs.push({ name: n, msg: `${label} is required.` });
+                });
+            }
+            // ownership % range
+            if (names.includes('uboOwnership') && val('uboOwnership')) {
+                const v = parseFloat(val('uboOwnership'));
+                if (isNaN(v) || v < 0 || v > 100) errs.push({ name: 'uboOwnership', msg: 'Ownership % must be between 0 and 100.' });
+            }
+            // net worth >= 0
+            if (names.includes('netWorth') && val('netWorth')) {
+                const v = parseFloat(val('netWorth'));
+                if (isNaN(v) || v < 0) errs.push({ name: 'netWorth', msg: 'Net worth must be a positive number.' });
+            }
+            // declaration checkbox
+            if (names.includes('declarationAgreed')) {
+                const d = fieldEl('declarationAgreed');
+                if (d && !d.checked) errs.push({ name: 'declarationAgreed', msg: 'You must agree to the declaration before saving.' });
+            }
+            return errs;
+        }
+
+        function fieldsInStep(stepId) {
+            const panel = document.querySelector(`.fpi-step-panel[data-panel="${stepId}"]`);
+            if (!panel) return [];
+            return Array.from(panel.querySelectorAll('[name]')).map(e => e.getAttribute('name'));
+        }
+
+        function applyErrors(errs) {
+            errs.forEach(e => setError(fieldEl(e.name), e.msg));
+            // flag tabs that contain errors
+            const badSteps = new Set(errs.map(e => stepOf(fieldEl(e.name))).filter(Boolean));
+            document.querySelectorAll('.fpi-tab-btn').forEach(btn => {
+                btn.classList.toggle('has-error', badSteps.has(btn.getAttribute('data-step')));
+            });
+            return badSteps;
+        }
+
+        function validateStep(stepId) {
+            const errs = runRules(fieldsInStep(stepId));
+            applyErrors(errs);
+            return errs.length === 0;
+        }
+
+        function validateAll() {
+            const allNames = steps.flatMap(s => fieldsInStep(s.id));
+            const errs = runRules(allNames);
+            const badSteps = applyErrors(errs);
+            if (errs.length) {
+                errorBanner.style.display = '';
+                // jump to the first step (in wizard order) that has an error
+                const firstBad = steps.findIndex(s => badSteps.has(s.id));
+                if (firstBad >= 0) { current = firstBad; render(); }
+                const firstEl = fieldEl(errs[0].name);
+                if (firstEl) firstEl.focus();
+            } else {
+                errorBanner.style.display = 'none';
+            }
+            return errs.length === 0;
+        }
+
+        form.addEventListener('submit', (e) => {
+            if (!validateAll()) e.preventDefault();
+        });
+
+        // ── Render server-side validation errors returned after a failed submit ──
+        const serverErrors = @json($errors->messages());
+        if (Object.keys(serverErrors).length) {
+            const errs = Object.entries(serverErrors).map(([name, msgs]) => ({ name, msg: msgs[0] }));
+            const badSteps = applyErrors(errs);
+            errorBanner.style.display = '';
+            const firstBad = steps.findIndex(s => badSteps.has(s.id));
+            if (firstBad >= 0) current = firstBad;
+        }
 
         syncComm();
         render();
