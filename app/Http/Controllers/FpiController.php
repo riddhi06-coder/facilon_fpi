@@ -84,6 +84,11 @@ class FpiController extends Controller
             'uploadedLeiProof' => '',
             'uploadedPanCopy' => '',
             'uploadedUboDecl' => '',
+            'uploadedIncorpCert_uri' => '',
+            'uploadedLeiProof_uri' => '',
+            'uploadedPanCopy_uri' => '',
+            'uploadedUboDecl_uri' => '',
+            'uboStructure' => '',
         ];
     }
 
@@ -103,32 +108,31 @@ class FpiController extends Controller
         $countries = DB::table('m_countries')->where('is_active', true)
             ->orderBy('display_order')->get(['country_id', 'label_en']);
 
+        $isdCodes = DB::table('m_countries')->where('is_active', true)->pluck('isd_code')->toArray();
+
         $activeSection = session('active_section', 'applicant');
         $savedSections = $this->savedSections($applicantId);
 
-        return view('fpi.index', compact('form', 'countries', 'activeSection', 'savedSections'));
+        return view('fpi.index', compact('form', 'countries', 'isdCodes', 'activeSection', 'savedSections'));
     }
 
-    /** Sections that already have persisted data (drives the green tab check). */
+    /** Section order for the wizard flow. */
+    private array $order = ['applicant', 'contact', 'ubo_tool', 'ubo', 'financial', 'category', 'depository', 'additional', 'declarations'];
+
+    private function isdCodes(): array
+    {
+        return DB::table('m_countries')->where('is_active', true)->pluck('isd_code')->map(fn ($c) => (string) $c)->toArray();
+    }
+
+    /** Sections marked complete in application_section_progress (drives the green tab check). */
     private function savedSections($applicantId): array
     {
         if (!$applicantId) {
             return [];
         }
-        $has = fn ($table) => DB::table($table)->where('applicant_id', $applicantId)->exists();
-        $app = DB::table('applicants')->where('applicant_id', $applicantId)->first();
-
-        $saved = [];
-        if ($has('corporate_applicant_details')) $saved[] = 'applicant';
-        if ($has('applicant_addresses') || $has('applicant_contacts')) $saved[] = 'contact';
-        if ($has('ubo')) $saved[] = 'ubo';
-        if ($has('tax_residencies') || ($app && ($app->net_worth_inr !== null || $app->gross_annual_income_band !== null))) $saved[] = 'financial';
-        if ($app && $app->fpi_category_code !== null) $saved[] = 'category';
-        if ($has('pan_additional_details') || $has('depository_bank_accounts') || $has('office_verification')) $saved[] = 'depository';
-        if ($has('investment_managers') || $has('applicant_custodian_details')) $saved[] = 'additional';
-        if ($has('application_declaration')) $saved[] = 'declarations';
-
-        return $saved;
+        return DB::table('application_section_progress')
+            ->where('applicant_id', $applicantId)->where('is_complete', 1)
+            ->pluck('section_code')->toArray();
     }
 
     /** Load a draft applicant's stored values back into form-field keys. */
@@ -189,6 +193,13 @@ class FpiController extends Controller
             $out['uboNationality'] = (string) $ubo->nationality_country_id;
             $out['uboPassport'] = $ubo->id_document_number; $out['uboOwnership'] = $ubo->shareholding_capital_pct;
             $out['uboAddress'] = $ubo->residential_address;
+        } elseif (DB::table('application_section_progress')->where('applicant_id', $applicantId)->where('section_code', 'ubo')->where('is_complete', 1)->exists()) {
+            $out['hasUbos'] = 'NO'; // section saved with "No" -> keep the choice
+        }
+
+        // Tab 3 — UBO Determination tool (ownership tree JSON)
+        if ($app && $app->ubo_structure_json) {
+            $out['uboStructure'] = $app->ubo_structure_json;
         }
 
         // Tab 5 — Financial & Tax
@@ -231,7 +242,22 @@ class FpiController extends Controller
 
         // Tab 9 — Declarations
         $decl = DB::table('application_declaration')->where('applicant_id', $applicantId)->first();
-        if ($decl) { $out['signatureName'] = $decl->authorized_signatory_name; }
+        if ($decl) {
+            $out['signatureName'] = $decl->authorized_signatory_name;
+            $out['declarationAgreed'] = true; // saved once -> keep the checkbox ticked
+        }
+        // Show previously-uploaded document filenames in the tiles.
+        $docFieldByCode = ['INCORP' => 'uploadedIncorpCert', 'LEIPROOF' => 'uploadedLeiProof', 'PANCOPY' => 'uploadedPanCopy', 'UBODECL' => 'uploadedUboDecl'];
+        $docs = DB::table('kyc_documents')
+            ->join('m_document_types', 'kyc_documents.doc_type_id', '=', 'm_document_types.doc_type_id')
+            ->where('kyc_documents.applicant_id', $applicantId)
+            ->get(['m_document_types.code', 'kyc_documents.file_storage_uri']);
+        foreach ($docs as $d) {
+            if (isset($docFieldByCode[$d->code])) {
+                $out[$docFieldByCode[$d->code]] = basename($d->file_storage_uri);
+                $out[$docFieldByCode[$d->code] . '_uri'] = 'storage/' . $d->file_storage_uri;
+            }
+        }
 
         // Drop nulls so form defaults ('') apply cleanly.
         return array_filter($out, fn ($v) => $v !== null);
@@ -247,8 +273,8 @@ class FpiController extends Controller
                 'knownByAnotherName'            => ['required', Rule::in(['YES', 'NO'])],
                 'otherTitle'                    => ['nullable', Rule::in(['M/S', 'MR', 'MRS', ''])],
                 'otherEntityName'               => ['nullable', 'required_if:knownByAnotherName,YES', 'string', 'max:200'],
-                'dateOfIncorporation'           => ['required', 'date'], // corporate_applicant_details.date_of_incorporation NOT NULL
-                'dateOfCommencementOfBusiness'  => ['nullable', 'date'],
+                'dateOfIncorporation'           => ['required', 'date', 'before_or_equal:today'],
+                'dateOfCommencementOfBusiness'  => ['nullable', 'date', 'before_or_equal:today'],
                 'placeOfIncorporation'          => ['required', 'string', 'max:100'],
                 'countryOfIncorporation'        => ['required', 'integer', Rule::exists('m_countries', 'country_id')],
                 'lei'                           => ['nullable', 'string', 'size:20', 'regex:/^[A-Z0-9]{20}$/'],
@@ -271,13 +297,13 @@ class FpiController extends Controller
                 'commCountry'     => ['nullable', 'string', 'max:100'],
                 'commZip'         => ['nullable', 'string', 'max:20'],
                 'telNumber'       => ['nullable', 'string', 'max:20'],
-                'mobileNumber'    => ['nullable', 'string', 'max:20'],
+                'mobileNumber'    => ['nullable', 'string', 'max:20', $this->mobileRule()],
                 'email'           => ['nullable', 'email', 'max:100'],
             ],
             'ubo' => [
                 'hasUbos'        => ['required', Rule::in(['YES', 'NO'])],
                 'uboName'        => ['nullable', 'required_if:hasUbos,YES', 'string', 'max:150'],
-                'uboDob'         => ['nullable', 'required_if:hasUbos,YES', 'date'],
+                'uboDob'         => ['nullable', 'required_if:hasUbos,YES', 'date', 'before_or_equal:today'],
                 'uboNationality' => ['nullable', 'required_if:hasUbos,YES', 'string', 'max:100'],
                 'uboPassport'    => ['nullable', 'required_if:hasUbos,YES', 'string', 'max:50'],
                 'uboOwnership'   => ['nullable', 'required_if:hasUbos,YES', 'numeric', 'between:0,100'],
@@ -314,14 +340,39 @@ class FpiController extends Controller
                 'indiaPlaceOfBusiness'      => ['nullable', 'string', 'max:200'],
             ],
             'declarations' => [
-                'uploadedIncorpCert' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
-                'uploadedLeiProof'   => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
-                'uploadedPanCopy'    => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
-                'uploadedUboDecl'    => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+                'uploadedIncorpCert' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
+                'uploadedLeiProof'   => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
+                'uploadedPanCopy'    => ['required', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
+                'uploadedUboDecl'    => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
                 'declarationAgreed'  => ['accepted'],
                 'signatureName'      => ['required', 'string', 'max:200'],
             ],
         ];
+    }
+
+    /** Mobile number must start with one of our countries' ISD codes and have a valid length. */
+    private function mobileRule(): \Closure
+    {
+        return function ($attribute, $value, $fail) {
+            $digits = preg_replace('/\D/', '', (string) $value);
+            if ($digits === '') {
+                return;
+            }
+            $codes = $this->isdCodes();
+            usort($codes, fn ($a, $b) => strlen($b) - strlen($a)); // longest prefix first
+            $match = null;
+            foreach ($codes as $c) {
+                if (str_starts_with($digits, $c)) { $match = $c; break; }
+            }
+            if ($match === null) {
+                $fail('Mobile number must start with a valid country dialing code (' . implode(', ', array_map(fn ($c) => "+$c", $this->isdCodes())) . ').');
+                return;
+            }
+            $rest = substr($digits, strlen($match));
+            if (strlen($rest) < 6 || strlen($rest) > 12) {
+                $fail('Mobile number has an invalid length for the selected country code.');
+            }
+        };
     }
 
     private function messages(): array
@@ -333,6 +384,9 @@ class FpiController extends Controller
             'lei.size'                    => 'LEI must be exactly 20 characters.',
             'countryOfIncorporation.required' => 'Please select the country of incorporation.',
             'countryOfIncorporation.exists'   => 'Please select a valid country.',
+            'dateOfIncorporation.before_or_equal'          => 'Date of Incorporation cannot be in the future.',
+            'dateOfCommencementOfBusiness.before_or_equal' => 'Date of Commencement of Business cannot be in the future.',
+            'uboDob.before_or_equal'      => 'Date of Birth cannot be in the future.',
             'declarationAgreed.accepted'  => 'You must agree to the declaration before saving.',
             'uboOwnership.between'        => 'Ownership % must be between 0 and 100.',
             'uploadedIncorpCert.required' => 'Certificate of Incorporation is required.',
@@ -353,6 +407,9 @@ class FpiController extends Controller
 
         // Validate ONLY the submitted section's fields (tab-wise).
         $rules = $this->sectionRules()[$section] ?? [];
+        if ($section === 'declarations') {
+            $rules = $this->relaxUploadedDocRules($rules);
+        }
         $request->validate($rules, $this->messages());
 
         $labels = [
@@ -363,21 +420,49 @@ class FpiController extends Controller
             'declarations' => 'Final Declarations',
         ];
 
-        // The UBO Determination tool is client-side only — nothing to persist.
-        if ($section !== 'ubo_tool') {
-            $applicantId = $this->getOrCreateApplicantId();
-            $method = 'save' . ucfirst($section) . 'Section';
-            if (method_exists($this, $method)) {
-                $this->{$method}($request, $applicantId);
-            }
+        // Every section (incl. the client-side UBO tool) creates/uses the draft
+        // applicant and is recorded in application_section_progress for the ✓.
+        $applicantId = $this->getOrCreateApplicantId();
+        $method = 'save' . ucfirst($section) . 'Section';
+        if (method_exists($this, $method)) {
+            $this->{$method}($request, $applicantId);
         }
+        DB::table('application_section_progress')->updateOrInsert(
+            ['applicant_id' => $applicantId, 'section_code' => $section],
+            ['is_complete' => 1]
+        );
+
+        // Advance to the next tab on a successful save.
+        $idx = array_search($section, $this->order, true);
+        $next = ($idx !== false && isset($this->order[$idx + 1])) ? $this->order[$idx + 1] : $section;
 
         $msg = ($labels[$section] ?? 'Section') . ' saved successfully.';
 
         return redirect()
             ->route('fpi.index')
             ->with('status', $msg)
-            ->with('active_section', $section);
+            ->with('active_section', $next);
+    }
+
+    /** For an already-uploaded mandatory document, drop the "required" rule. */
+    private function relaxUploadedDocRules(array $rules): array
+    {
+        $id = session('caf_applicant_id');
+        if (!$id) {
+            return $rules;
+        }
+        $have = DB::table('kyc_documents')
+            ->join('m_document_types', 'kyc_documents.doc_type_id', '=', 'm_document_types.doc_type_id')
+            ->where('kyc_documents.applicant_id', $id)->pluck('code')->toArray();
+
+        $codeByField = ['uploadedIncorpCert' => 'INCORP', 'uploadedPanCopy' => 'PANCOPY'];
+        foreach ($codeByField as $field => $code) {
+            if (in_array($code, $have, true) && isset($rules[$field])) {
+                $rules[$field] = array_values(array_filter($rules[$field], fn ($r) => $r !== 'required'));
+                array_unshift($rules[$field], 'nullable');
+            }
+        }
+        return $rules;
     }
 
     /** Get the current draft applicant id, creating a bare row on first use. */
@@ -426,6 +511,17 @@ class FpiController extends Controller
                 'alias_last_name_or_company' => $request->input('otherEntityName'),
             ]);
         }
+    }
+
+    /** Tab 3 -> applicants.ubo_structure_json (the ownership tree from the tool). */
+    private function saveUbo_toolSection(Request $request, int $id): void
+    {
+        $json = $request->input('uboStructure');
+        // Store only if it parses as JSON; otherwise clear.
+        $valid = $json && json_decode($json) !== null;
+        DB::table('applicants')->where('applicant_id', $id)->update([
+            'ubo_structure_json' => $valid ? $json : null,
+        ]);
     }
 
     /** Tab 2 -> applicant_addresses (1:N) + applicant_contacts. */
@@ -608,7 +704,9 @@ class FpiController extends Controller
             if (!$type) {
                 continue;
             }
-            $path = $request->file($field)->store('kyc', 'public');
+            // Keep the original filename (per applicant + doc code) so it displays back.
+            $original = $request->file($field)->getClientOriginalName();
+            $path = $request->file($field)->storeAs("kyc/{$id}/{$code}", $original, 'public');
             DB::table('kyc_documents')->where('applicant_id', $id)->where('doc_type_id', $type->doc_type_id)->delete();
             DB::table('kyc_documents')->insert([
                 'applicant_id'     => $id,

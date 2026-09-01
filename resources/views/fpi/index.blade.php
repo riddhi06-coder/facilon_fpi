@@ -140,6 +140,7 @@
     .ubo-btn-secondary:hover { background: #157347; }
     .ubo-btn-ghost { background: transparent; color: var(--gray700); border: 1px solid var(--gray200); }
     .ubo-btn-ghost:hover { background: var(--gray100); }
+    .ubo-select.is-invalid, .ubo-input.is-invalid { border-color: var(--danger); background: #fdf3f2; }
 </style>
 @endpush
 
@@ -155,6 +156,7 @@
     <form class="fpi-container" method="POST" action="{{ route('fpi.store') }}" id="fpiForm" enctype="multipart/form-data">
         @csrf
         <input type="hidden" name="section" id="fpiSection" value="applicant">
+        <input type="hidden" name="uboStructure" id="uboStructureField" value="{{ $form['uboStructure'] }}">
 
         {{-- Progress stepper --}}
         <div class="fpi-header-banner">
@@ -220,11 +222,11 @@
 
                     <div class="fpi-form-group">
                         <label class="fpi-label">Date of Incorporation <span class="fpi-req">*</span></label>
-                        <input class="fpi-input" type="date" name="dateOfIncorporation" value="{{ $form['dateOfIncorporation'] }}">
+                        <input class="fpi-input" type="date" name="dateOfIncorporation" max="{{ date('Y-m-d') }}" value="{{ $form['dateOfIncorporation'] }}">
                     </div>
                     <div class="fpi-form-group">
                         <label class="fpi-label">Date of Commencement of Business</label>
-                        <input class="fpi-input" type="date" name="dateOfCommencementOfBusiness" value="{{ $form['dateOfCommencementOfBusiness'] }}">
+                        <input class="fpi-input" type="date" name="dateOfCommencementOfBusiness" max="{{ date('Y-m-d') }}" value="{{ $form['dateOfCommencementOfBusiness'] }}">
                     </div>
                     <div class="fpi-form-group">
                         <label class="fpi-label">Place of Incorporation <span class="fpi-req">*</span></label>
@@ -310,6 +312,7 @@
                     <div class="ubo-card-title">Step 1: What type of applicant is this?</div>
                     <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
                         <select class="ubo-select" id="applicantType" style="width:280px">
+                            <option value="">Select applicant type</option>
                             <option value="Partnership">Partnership</option>
                             <option value="Company">Company</option>
                             <option value="Trust">Trust</option>
@@ -378,7 +381,7 @@
                     <div class="fpi-sub-heading">Ultimate Beneficial Owner 1</div>
                     <div class="fpi-grid">
                         <div class="fpi-form-group"><label class="fpi-label">Full Name <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="uboName" value="{{ $form['uboName'] }}"></div>
-                        <div class="fpi-form-group"><label class="fpi-label">Date of Birth <span class="fpi-req">*</span></label><input class="fpi-input" type="date" name="uboDob" value="{{ $form['uboDob'] }}"></div>
+                        <div class="fpi-form-group"><label class="fpi-label">Date of Birth <span class="fpi-req">*</span></label><input class="fpi-input" type="date" name="uboDob" max="{{ date('Y-m-d') }}" value="{{ $form['uboDob'] }}"></div>
                         <div class="fpi-form-group"><label class="fpi-label">Nationality <span class="fpi-req">*</span></label>
                             <select class="fpi-select" name="uboNationality">
                                 <option value="" @selected($form['uboNationality'] === '')>Select</option>
@@ -388,7 +391,7 @@
                             </select>
                         </div>
                         <div class="fpi-form-group"><label class="fpi-label">Passport / National ID <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="uboPassport" value="{{ $form['uboPassport'] }}"></div>
-                        <div class="fpi-form-group"><label class="fpi-label">Ownership % <span class="fpi-req">*</span></label><input class="fpi-input" type="number" name="uboOwnership" value="{{ $form['uboOwnership'] }}"></div>
+                        <div class="fpi-form-group"><label class="fpi-label">Ownership % <span class="fpi-req">*</span></label><input class="fpi-input" type="number" name="uboOwnership" min="0" max="100" step="0.01" value="{{ $form['uboOwnership'] }}"></div>
                         <div class="fpi-form-group" style="grid-column: span 3"><label class="fpi-label">Residential Address <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="uboAddress" value="{{ $form['uboAddress'] }}"></div>
                     </div>
                 </div>
@@ -497,45 +500,39 @@
             {{-- STEP 8: Declarations --}}
             <div class="fpi-step-panel" data-panel="declarations">
                 <div class="fpi-card-heading">Step 9: Final Declarations & Document Upload</div>
+                <div id="fpiSubmittedNote" style="display:none;background:#d1e7dd;color:#0f5132;border:1px solid #badbcc;border-radius:6px;padding:10px 14px;font-size:11.5px;margin-bottom:14px">
+                    ✅ Your application has been submitted. You can now use <strong>Print Preview</strong> to review / print the completed form.
+                </div>
                 <div class="fpi-sub-heading">Required Document Proofs</div>
+                <div style="font-size:10.5px;color:var(--gray500);margin-bottom:10px">Only PDF or Word (.doc / .docx) files are allowed, up to 5 MB each — nothing larger.</div>
                 <div class="fpi-grid" style="margin-bottom:16px">
-                    <div class="fpi-form-group">
-                        <label class="fpi-label">Certificate of Incorporation <span class="fpi-req">*</span></label>
-                        <label class="fpi-file-upload">
-                            <input type="file" name="uploadedIncorpCert" accept=".pdf,.jpg,.jpeg,.png">
-                            <span class="fpi-file-icon">📁</span>
-                            <span class="fpi-file-name">Click to upload</span>
-                        </label>
-                    </div>
-                    <div class="fpi-form-group">
-                        <label class="fpi-label">Proof of LEI Registration</label>
-                        <label class="fpi-file-upload">
-                            <input type="file" name="uploadedLeiProof" accept=".pdf,.jpg,.jpeg,.png">
-                            <span class="fpi-file-icon">📁</span>
-                            <span class="fpi-file-name">Click to upload</span>
-                        </label>
-                    </div>
-                    <div class="fpi-form-group">
-                        <label class="fpi-label">Copy of Indian PAN Card <span class="fpi-req">*</span></label>
-                        <label class="fpi-file-upload">
-                            <input type="file" name="uploadedPanCopy" accept=".pdf,.jpg,.jpeg,.png">
-                            <span class="fpi-file-icon">📁</span>
-                            <span class="fpi-file-name">Click to upload</span>
-                        </label>
-                    </div>
-                    <div class="fpi-form-group">
-                        <label class="fpi-label">UBO List & Declaration</label>
-                        <label class="fpi-file-upload">
-                            <input type="file" name="uploadedUboDecl" accept=".pdf,.jpg,.jpeg,.png">
-                            <span class="fpi-file-icon">📁</span>
-                            <span class="fpi-file-name">Click to upload</span>
-                        </label>
-                    </div>
+                    @php
+                        $uploads = [
+                            ['name' => 'uploadedIncorpCert', 'label' => 'Certificate of Incorporation', 'req' => true],
+                            ['name' => 'uploadedLeiProof', 'label' => 'Proof of LEI Registration', 'req' => false],
+                            ['name' => 'uploadedPanCopy', 'label' => 'Copy of Indian PAN Card', 'req' => true],
+                            ['name' => 'uploadedUboDecl', 'label' => 'UBO List & Declaration', 'req' => false],
+                        ];
+                    @endphp
+                    @foreach ($uploads as $u)
+                        @php $saved = $form[$u['name']] ?? ''; $uri = $form[$u['name'].'_uri'] ?? ''; @endphp
+                        <div class="fpi-form-group">
+                            <label class="fpi-label">{{ $u['label'] }} @if ($u['req'])<span class="fpi-req">*</span>@endif</label>
+                            <label class="fpi-file-upload">
+                                <input type="file" name="{{ $u['name'] }}" accept=".pdf,.doc,.docx" @if ($saved) data-uploaded="1" @endif>
+                                <span class="fpi-file-icon">{{ $saved ? '📄' : '📁' }}</span>
+                                <span class="fpi-file-name">{{ $saved ? $saved : 'Click to upload (PDF / Word, ≤5 MB)' }}</span>
+                            </label>
+                            @if ($saved && $uri)
+                                <a href="{{ asset($uri) }}" target="_blank" rel="noopener" style="font-size:10px;color:var(--primary);font-weight:600;margin-top:4px;text-decoration:none">🔍 Preview uploaded file · choose a file above to replace</a>
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
                 <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:16px">
                     <input type="checkbox" name="declarationAgreed" style="margin-top:2px" @checked($form['declarationAgreed'])>
                     <div style="font-size:11px;color:var(--gray700)">
-                        I/We hereby declare that all details and documents provided in this registration form are true, correct, and complete to the best of my/our knowledge and belief. I/We undertake to inform the depository participant / custodian immediately of any changes.
+                        <span class="fpi-req">*</span> I/We hereby declare that all details and documents provided in this registration form are true, correct, and complete to the best of my/our knowledge and belief. I/We undertake to inform the depository participant / custodian immediately of any changes.
                     </div>
                 </div>
                 <div class="fpi-grid">
@@ -558,7 +555,7 @@
                     <button type="button" class="btn btn-ghost btn-sm" id="fpiPrev" style="padding:4px 10px;font-size:11px;display:none">Previous</button>
                 </div>
                 <div style="display:flex;gap:6px">
-                    <button type="button" class="btn btn-ghost btn-sm" onclick="window.print()" style="padding:4px 10px;font-size:11px">Print Preview</button>
+                    <button type="button" class="btn btn-ghost btn-sm" id="fpiPrintPreview" onclick="window.print()" style="padding:4px 10px;font-size:11px;display:none">Print Preview</button>
                     <button type="button" class="btn btn-primary btn-sm" id="fpiSaveTab" style="padding:4px 12px;font-size:11px">Save Section</button>
                     <button type="button" class="btn btn-primary btn-sm" id="fpiNext" style="padding:4px 12px;font-size:11px">Next</button>
                 </div>
@@ -601,6 +598,13 @@
             progressBar.style.width = (current / (steps.length - 1)) * 100 + '%';
             prevBtn.style.display = current === 0 ? 'none' : '';
             nextBtn.style.display = current === steps.length - 1 ? 'none' : '';
+
+            // Print Preview appears only once the Final Declarations tab is submitted.
+            const submitted = savedSteps.has('declarations');
+            const printBtn = document.getElementById('fpiPrintPreview');
+            if (printBtn) printBtn.style.display = submitted ? '' : 'none';
+            const note = document.getElementById('fpiSubmittedNote');
+            if (note) note.style.display = (submitted && activeId === 'declarations') ? '' : 'none';
 
             // FAQs
             faqTitle.textContent = steps[current].title;
@@ -688,6 +692,7 @@
             email: { re: /^[^@\s]+@[^@\s]+\.[^@\s]+$/, msg: 'Enter a valid email address.' },
             lei: { re: /^[A-Za-z0-9]{20}$/, msg: 'LEI must be 20 alphanumeric characters.' },
         };
+        const ISD_CODES = @json(array_values($isdCodes));
 
         function fieldEl(name) { return form.querySelector(`[name="${name}"]`); }
         function stepOf(el) { const p = el && el.closest('.fpi-step-panel'); return p ? p.getAttribute('data-panel') : null; }
@@ -734,8 +739,9 @@
                 if (!el || el.disabled) return;
                 clearError(el);
 
-                // required
-                if (REQUIRED[n] && !val(n)) { errs.push({ name: n, msg: `${REQUIRED[n]} is required.` }); return; }
+                // required (a previously-uploaded file counts as satisfied)
+                const alreadyUploaded = el.type === 'file' && el.dataset.uploaded === '1' && el.files.length === 0;
+                if (REQUIRED[n] && !val(n) && !alreadyUploaded) { errs.push({ name: n, msg: `${REQUIRED[n]} is required.` }); return; }
                 // pattern (only when a value is present)
                 if (PATTERNS[n] && val(n) && !PATTERNS[n].re.test(val(n))) { errs.push({ name: n, msg: PATTERNS[n].msg }); return; }
             });
@@ -761,6 +767,27 @@
             if (names.includes('netWorth') && val('netWorth')) {
                 const v = parseFloat(val('netWorth'));
                 if (isNaN(v) || v < 0) errs.push({ name: 'netWorth', msg: 'Net worth must be a positive number.' });
+            }
+            // dates cannot be in the future
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            [['dateOfIncorporation', 'Date of Incorporation'], ['dateOfCommencementOfBusiness', 'Date of Commencement of Business'], ['uboDob', 'Date of Birth']]
+            .forEach(([n, label]) => {
+                if (names.includes(n) && val(n)) {
+                    const d = new Date(val(n));
+                    if (!isNaN(d) && d > today) errs.push({ name: n, msg: `${label} cannot be in the future.` });
+                }
+            });
+            // mobile number must match one of our countries' dialing codes
+            if (names.includes('mobileNumber') && val('mobileNumber')) {
+                const digits = val('mobileNumber').replace(/\D/g, '');
+                const codes = ISD_CODES.slice().sort((a, b) => b.length - a.length);
+                const match = codes.find(c => digits.startsWith(c));
+                if (!match) {
+                    errs.push({ name: 'mobileNumber', msg: 'Mobile must start with a valid country code (' + ISD_CODES.map(c => '+' + c).join(', ') + ').' });
+                } else {
+                    const rest = digits.slice(match.length);
+                    if (rest.length < 6 || rest.length > 12) errs.push({ name: 'mobileNumber', msg: 'Mobile number length is invalid for the selected country code.' });
+                }
             }
             // declaration checkbox
             if (names.includes('declarationAgreed')) {
@@ -805,6 +832,15 @@
                 if (firstEl && firstEl.focus) firstEl.focus();
                 return;
             }
+            if (step.id === 'ubo_tool') {
+                if (window.__uboValid && !window.__uboValid()) {
+                    const at = document.getElementById('applicantType');
+                    at.classList.add('is-invalid'); at.focus();
+                    Swal.fire({ icon: 'error', title: 'Applicant type required', text: 'Please select the applicant type before saving the UBO Determination.', confirmButtonColor: '#3e6f7c' });
+                    return;
+                }
+                document.getElementById('uboStructureField').value = window.__uboSerialize();
+            }
             errorBanner.style.display = 'none';
             sectionField.value = step.id;
             form.submit();   // programmatic submit bypasses the submit listener below
@@ -830,31 +866,41 @@
 
     // ── Embedded UBO Determination Tool (Step 3) ──
     (function () {
-        const DEFAULT_ENTITIES = [
-            {
-                id: 'applicant', name: 'GLOBAL ALPHAS FPI FUND', type: 'Partnership',
-                owners: [
-                    { id: 'own1', name: 'Alpha Holdings LLC', type: 'Entity', pct: 60, targetId: 'alpha_holdings' },
-                    { id: 'own2', name: 'Johnathan Davis', type: 'Individual', pct: 40 },
-                ],
-            },
-            {
-                id: 'alpha_holdings', name: 'Alpha Holdings LLC', type: 'Company',
-                owners: [
-                    { id: 'own3', name: 'Sarah Jenkins', type: 'Individual', pct: 80 },
-                    { id: 'own4', name: 'Mike Smith', type: 'Individual', pct: 20 },
-                ],
-            },
-        ];
         const THRESHOLD = 10;
+        const STORED = @json($form['uboStructure'] ?? '');
+        const APPLICANT_NAME = (document.querySelector('[name="entityName"]')?.value || 'Applicant').trim() || 'Applicant';
 
-        let entities = structuredClone(DEFAULT_ENTITIES);
+        // A single applicant node seeded from the Entity Name (Tab 1), no owners.
+        const seededEntities = () => ([{ id: 'applicant', name: APPLICANT_NAME, type: (document.getElementById('applicantType')?.value || ''), owners: [] }]);
+
+        let entities;
+        if (STORED) {
+            try { entities = (JSON.parse(STORED).entities) || null; } catch (e) { entities = null; }
+        }
+        if (!entities || !entities.length) entities = seededEntities();
+
         let uid = 0;
         const newId = (p) => p + '_' + (Date.now() + (uid++));
 
         const hierarchyEl = document.getElementById('hierarchy');
         const evalResultEl = document.getElementById('evalResult');
         const applicantTypeEl = document.getElementById('applicantType');
+
+        // Restore the applicant type from the stored tree (applicant node type).
+        if (entities[0] && entities[0].type) applicantTypeEl.value = entities[0].type;
+
+        // Keep the applicant node's type in sync with the dropdown.
+        applicantTypeEl.addEventListener('change', () => {
+            if (entities[0]) { entities[0].type = applicantTypeEl.value; renderHierarchy(); }
+            applicantTypeEl.classList.remove('is-invalid');
+        });
+
+        // Serializer + validity flag used by the "Save Section" flow.
+        window.__uboSerialize = () => {
+            if (entities[0]) entities[0].type = applicantTypeEl.value;
+            return JSON.stringify({ entities });
+        };
+        window.__uboValid = () => !!applicantTypeEl.value;
 
         function updateEntityName(entityId, newName) {
             entities.forEach(ent => {
@@ -884,7 +930,7 @@
         function addOwner(entityId) {
             const ent = entities.find(e => e.id === entityId);
             if (!ent) return;
-            ent.owners.push({ id: newId('own'), name: 'New Shareholder', type: 'Individual', pct: 10 });
+            ent.owners.push({ id: newId('own'), name: '', type: '', pct: 0 });
             renderHierarchy();
         }
 
@@ -932,20 +978,26 @@
                     row.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:center';
 
                     const name = document.createElement('input');
-                    name.className = 'ubo-input'; name.type = 'text'; name.value = owner.name; name.placeholder = 'Owner Name';
+                    name.className = 'ubo-input'; name.type = 'text'; name.value = owner.name; name.placeholder = 'Shareholder / partner name';
                     name.addEventListener('change', e => updateOwner(ent.id, owner.id, { name: e.target.value }));
 
                     const type = document.createElement('select');
                     type.className = 'ubo-select';
-                    type.innerHTML = '<option value="Individual">Natural Person</option><option value="Entity">Corporate Entity</option>';
-                    type.value = owner.type;
+                    type.innerHTML = '<option value="">Select</option><option value="Individual">Natural Person</option><option value="Entity">Corporate Entity</option>';
+                    type.value = owner.type || '';
                     type.addEventListener('change', e => updateOwner(ent.id, owner.id, { type: e.target.value }));
 
                     const pctWrap = document.createElement('div');
                     pctWrap.style.cssText = 'display:flex;align-items:center;gap:4px';
                     const pct = document.createElement('input');
-                    pct.className = 'ubo-input'; pct.type = 'number'; pct.value = owner.pct; pct.placeholder = '%'; pct.style.width = '60px';
-                    pct.addEventListener('change', e => updateOwner(ent.id, owner.id, { pct: parseFloat(e.target.value) || 0 }));
+                    pct.className = 'ubo-input'; pct.type = 'number'; pct.min = '0'; pct.max = '100'; pct.step = '0.01';
+                    pct.value = owner.pct; pct.placeholder = '%'; pct.style.width = '60px';
+                    pct.addEventListener('change', e => {
+                        let v = parseFloat(e.target.value) || 0;
+                        v = Math.min(100, Math.max(0, v));   // clamp 0..100
+                        e.target.value = v;
+                        updateOwner(ent.id, owner.id, { pct: v });
+                    });
                     const pctLabel = document.createElement('span');
                     pctLabel.style.cssText = 'font-size:11px;color:var(--gray500)'; pctLabel.textContent = '%';
                     pctWrap.append(pct, pctLabel);
@@ -1086,17 +1138,9 @@
 
         function handleReset() {
             const type = applicantTypeEl.value;
-            const subId = newId('sub_entity');
-            entities = [
-                {
-                    id: 'applicant', name: 'GLOBAL ALPHAS FPI FUND', type,
-                    owners: [
-                        { id: newId('own'), name: 'Owner A (Entity)', type: 'Entity', pct: 50, targetId: subId },
-                        { id: newId('own'), name: 'Owner B (Individual)', type: 'Individual', pct: 50 },
-                    ],
-                },
-                { id: subId, name: 'Owner A (Entity)', type: 'Company', owners: [{ id: newId('own'), name: 'Sub-Owner 1', type: 'Individual', pct: 100 }] },
-            ];
+            const name = (document.querySelector('[name="entityName"]')?.value || 'Applicant').trim() || 'Applicant';
+            // Clean start: just the applicant node (from Entity Name), add owners yourself.
+            entities = [{ id: 'applicant', name, type, owners: [] }];
             evalResultEl.innerHTML = `<div style="border:1px dashed var(--gray300);padding:16px;text-align:center;color:var(--gray500);font-size:11.5px;border-radius:6px">Awaiting evaluation...</div>`;
             renderHierarchy();
         }
