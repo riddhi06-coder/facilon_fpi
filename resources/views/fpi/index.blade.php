@@ -54,6 +54,9 @@
             ['q' => 'Can a digital signature be used for authorized sign-off?', 'a' => 'Yes, digital signatures containing verifiable certificates are accepted.'],
         ],
     ];
+
+    // Simple array for the JS layer (avoids @json parsing an inline arrow fn).
+    $stepsJs = array_map(fn ($s) => ['id' => $s['id'], 'title' => $s['title'], 'tab' => $s['tab']], $steps);
 @endphp
 
 @push('styles')
@@ -107,8 +110,10 @@
         display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; text-align: center; min-height: 80px; transition: all .15s;
     }
     .fpi-file-upload:hover { background: #f1f5f7; border-color: var(--primary); }
+    .fpi-file-upload input { display: none; }
+    .fpi-file-upload.is-invalid { border-color: var(--danger); background: #fdf3f2; }
     .fpi-file-icon { font-size: 20px; color: var(--primary); margin-bottom: 4px; }
-    .fpi-file-name { font-size: 10px; color: var(--primary); font-weight: 700; margin-top: 4px; }
+    .fpi-file-name { font-size: 10px; color: var(--primary); font-weight: 700; margin-top: 4px; word-break: break-all; }
     .fpi-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--gray100); padding-top: 12px; }
     .fpi-step-panel { display: none; }
     .fpi-step-panel.active { display: block; }
@@ -118,6 +123,7 @@
     .fpi-invalid-feedback { font-size: 10px; color: var(--danger); margin-top: 2px; }
     .fpi-tab-btn.has-error { color: var(--danger); }
     .fpi-tab-btn.has-error::after { content: ' !'; font-weight: 700; }
+    .fpi-tab-btn.saved::before { content: '✓ '; color: var(--success); font-weight: 700; }
     .fpi-form-error-banner {
         background: #fdecea; border: 1px solid #f5c6c2; color: #842029; border-radius: 6px;
         padding: 10px 14px; font-size: 11.5px; margin-bottom: 14px;
@@ -143,11 +149,12 @@
     @endif
 
     <div class="fpi-form-error-banner" id="fpiErrorBanner" style="display:none">
-        Please correct the highlighted fields below before saving.
+        Please correct the highlighted fields in this section.
     </div>
 
-    <form class="fpi-container" method="POST" action="{{ route('fpi.store') }}" id="fpiForm">
+    <form class="fpi-container" method="POST" action="{{ route('fpi.store') }}" id="fpiForm" enctype="multipart/form-data">
         @csrf
+        <input type="hidden" name="section" id="fpiSection" value="applicant">
 
         {{-- Progress stepper --}}
         <div class="fpi-header-banner">
@@ -170,6 +177,7 @@
         </div>
 
         <div class="fpi-card">
+            
             {{-- STEP 1: Applicant --}}
             <div class="fpi-step-panel" data-panel="applicant">
                 <div class="fpi-card-heading">Step 1: Basic Applicant Details</div>
@@ -211,7 +219,7 @@
                     </div>
 
                     <div class="fpi-form-group">
-                        <label class="fpi-label">Date of Incorporation</label>
+                        <label class="fpi-label">Date of Incorporation <span class="fpi-req">*</span></label>
                         <input class="fpi-input" type="date" name="dateOfIncorporation" value="{{ $form['dateOfIncorporation'] }}">
                     </div>
                     <div class="fpi-form-group">
@@ -224,7 +232,12 @@
                     </div>
                     <div class="fpi-form-group">
                         <label class="fpi-label">Country of Incorporation <span class="fpi-req">*</span></label>
-                        <input class="fpi-input" type="text" name="countryOfIncorporation" value="{{ $form['countryOfIncorporation'] }}">
+                        <select class="fpi-select" name="countryOfIncorporation">
+                            <option value="" @selected($form['countryOfIncorporation'] === '')>Select</option>
+                            @foreach ($countries as $c)
+                                <option value="{{ $c->country_id }}" @selected((string) $form['countryOfIncorporation'] === (string) $c->country_id)>{{ $c->label_en }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="fpi-form-group" style="grid-column: span 2">
                         <label class="fpi-label">Legal Entity Identifier (LEI)</label>
@@ -247,7 +260,14 @@
                     <div class="fpi-form-group"><label class="fpi-label">Address Line 3</label><input class="fpi-input" type="text" name="regAddressLine3" value="{{ $form['regAddressLine3'] }}"></div>
                     <div class="fpi-form-group"><label class="fpi-label">City</label><input class="fpi-input" type="text" name="regCity" value="{{ $form['regCity'] }}"></div>
                     <div class="fpi-form-group"><label class="fpi-label">State / Province</label><input class="fpi-input" type="text" name="regState" value="{{ $form['regState'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">Country</label><input class="fpi-input" type="text" name="regCountry" value="{{ $form['regCountry'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Country</label>
+                        <select class="fpi-select" name="regCountry">
+                            <option value="" @selected($form['regCountry'] === '')>Select</option>
+                            @foreach ($countries as $c)
+                                <option value="{{ $c->country_id }}" @selected((string) $form['regCountry'] === (string) $c->country_id)>{{ $c->label_en }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="fpi-form-group"><label class="fpi-label">ZIP / Postal Code</label><input class="fpi-input" type="text" name="regZip" value="{{ $form['regZip'] }}"></div>
                 </div>
 
@@ -263,7 +283,14 @@
                     <div class="fpi-form-group"><label class="fpi-label">Address Line 3</label><input class="fpi-input comm-field" type="text" name="commAddressLine3" value="{{ $form['commAddressLine3'] }}"></div>
                     <div class="fpi-form-group"><label class="fpi-label">City</label><input class="fpi-input comm-field" type="text" name="commCity" value="{{ $form['commCity'] }}"></div>
                     <div class="fpi-form-group"><label class="fpi-label">State / Province</label><input class="fpi-input comm-field" type="text" name="commState" value="{{ $form['commState'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">Country</label><input class="fpi-input comm-field" type="text" name="commCountry" value="{{ $form['commCountry'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Country</label>
+                        <select class="fpi-select comm-field" name="commCountry">
+                            <option value="" @selected($form['commCountry'] === '')>Select</option>
+                            @foreach ($countries as $c)
+                                <option value="{{ $c->country_id }}" @selected((string) $form['commCountry'] === (string) $c->country_id)>{{ $c->label_en }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="fpi-form-group"><label class="fpi-label">ZIP / Postal Code</label><input class="fpi-input comm-field" type="text" name="commZip" value="{{ $form['commZip'] }}"></div>
                 </div>
 
@@ -352,7 +379,14 @@
                     <div class="fpi-grid">
                         <div class="fpi-form-group"><label class="fpi-label">Full Name <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="uboName" value="{{ $form['uboName'] }}"></div>
                         <div class="fpi-form-group"><label class="fpi-label">Date of Birth <span class="fpi-req">*</span></label><input class="fpi-input" type="date" name="uboDob" value="{{ $form['uboDob'] }}"></div>
-                        <div class="fpi-form-group"><label class="fpi-label">Nationality <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="uboNationality" value="{{ $form['uboNationality'] }}"></div>
+                        <div class="fpi-form-group"><label class="fpi-label">Nationality <span class="fpi-req">*</span></label>
+                            <select class="fpi-select" name="uboNationality">
+                                <option value="" @selected($form['uboNationality'] === '')>Select</option>
+                                @foreach ($countries as $c)
+                                    <option value="{{ $c->country_id }}" @selected((string) $form['uboNationality'] === (string) $c->country_id)>{{ $c->label_en }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div class="fpi-form-group"><label class="fpi-label">Passport / National ID <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="uboPassport" value="{{ $form['uboPassport'] }}"></div>
                         <div class="fpi-form-group"><label class="fpi-label">Ownership % <span class="fpi-req">*</span></label><input class="fpi-input" type="number" name="uboOwnership" value="{{ $form['uboOwnership'] }}"></div>
                         <div class="fpi-form-group" style="grid-column: span 3"><label class="fpi-label">Residential Address <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="uboAddress" value="{{ $form['uboAddress'] }}"></div>
@@ -375,7 +409,14 @@
                     </div>
                     <div class="fpi-form-group"><label class="fpi-label">Net Worth in USD</label><input class="fpi-input" type="number" name="netWorth" value="{{ $form['netWorth'] }}"></div>
                     <div class="fpi-form-group"><label class="fpi-label">Net Worth Date</label><input class="fpi-input" type="date" name="netWorthDate" value="{{ $form['netWorthDate'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">Tax Residency Country</label><input class="fpi-input" type="text" name="taxCountry" value="{{ $form['taxCountry'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Tax Residency Country</label>
+                        <select class="fpi-select" name="taxCountry">
+                            <option value="" @selected($form['taxCountry'] === '')>Select</option>
+                            @foreach ($countries as $c)
+                                <option value="{{ $c->country_id }}" @selected((string) $form['taxCountry'] === (string) $c->country_id)>{{ $c->label_en }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="fpi-form-group"><label class="fpi-label">Tax Identification Number (TIN)</label><input class="fpi-input" type="text" name="tin" value="{{ $form['tin'] }}"></div>
                 </div>
             </div>
@@ -402,7 +443,14 @@
                     </div>
                     <div class="fpi-form-group" style="grid-column: span 2"><label class="fpi-label">Regulator Name</label><input class="fpi-input" type="text" name="regulatorName" value="{{ $form['regulatorName'] }}"></div>
                     <div class="fpi-form-group"><label class="fpi-label">Registration / License Number</label><input class="fpi-input" type="text" name="licenseNumber" value="{{ $form['licenseNumber'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">Regulator Jurisdiction</label><input class="fpi-input" type="text" name="regulatorJurisdiction" value="{{ $form['regulatorJurisdiction'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Regulator Jurisdiction</label>
+                        <select class="fpi-select" name="regulatorJurisdiction">
+                            <option value="" @selected($form['regulatorJurisdiction'] === '')>Select</option>
+                            @foreach ($countries as $c)
+                                <option value="{{ $c->country_id }}" @selected((string) $form['regulatorJurisdiction'] === (string) $c->country_id)>{{ $c->label_en }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -453,19 +501,35 @@
                 <div class="fpi-grid" style="margin-bottom:16px">
                     <div class="fpi-form-group">
                         <label class="fpi-label">Certificate of Incorporation <span class="fpi-req">*</span></label>
-                        <div class="fpi-file-upload"><span class="fpi-file-icon">📁</span><span class="fpi-file-name">{{ $form['uploadedIncorpCert'] }}</span></div>
+                        <label class="fpi-file-upload">
+                            <input type="file" name="uploadedIncorpCert" accept=".pdf,.jpg,.jpeg,.png">
+                            <span class="fpi-file-icon">📁</span>
+                            <span class="fpi-file-name">Click to upload</span>
+                        </label>
                     </div>
                     <div class="fpi-form-group">
                         <label class="fpi-label">Proof of LEI Registration</label>
-                        <div class="fpi-file-upload"><span class="fpi-file-icon">📁</span><span class="fpi-file-name">{{ $form['uploadedLeiProof'] }}</span></div>
+                        <label class="fpi-file-upload">
+                            <input type="file" name="uploadedLeiProof" accept=".pdf,.jpg,.jpeg,.png">
+                            <span class="fpi-file-icon">📁</span>
+                            <span class="fpi-file-name">Click to upload</span>
+                        </label>
                     </div>
                     <div class="fpi-form-group">
                         <label class="fpi-label">Copy of Indian PAN Card <span class="fpi-req">*</span></label>
-                        <div class="fpi-file-upload"><span class="fpi-file-icon">📁</span><span class="fpi-file-name">{{ $form['uploadedPanCopy'] }}</span></div>
+                        <label class="fpi-file-upload">
+                            <input type="file" name="uploadedPanCopy" accept=".pdf,.jpg,.jpeg,.png">
+                            <span class="fpi-file-icon">📁</span>
+                            <span class="fpi-file-name">Click to upload</span>
+                        </label>
                     </div>
                     <div class="fpi-form-group">
                         <label class="fpi-label">UBO List & Declaration</label>
-                        <div class="fpi-file-upload"><span class="fpi-file-icon">📁</span><span class="fpi-file-name">{{ $form['uploadedUboDecl'] }}</span></div>
+                        <label class="fpi-file-upload">
+                            <input type="file" name="uploadedUboDecl" accept=".pdf,.jpg,.jpeg,.png">
+                            <span class="fpi-file-icon">📁</span>
+                            <span class="fpi-file-name">Click to upload</span>
+                        </label>
                     </div>
                 </div>
                 <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:16px">
@@ -495,7 +559,7 @@
                 </div>
                 <div style="display:flex;gap:6px">
                     <button type="button" class="btn btn-ghost btn-sm" onclick="window.print()" style="padding:4px 10px;font-size:11px">Print Preview</button>
-                    <button type="submit" class="btn btn-primary btn-sm" style="padding:4px 12px;font-size:11px">Save</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="fpiSaveTab" style="padding:4px 12px;font-size:11px">Save Section</button>
                     <button type="button" class="btn btn-primary btn-sm" id="fpiNext" style="padding:4px 12px;font-size:11px">Next</button>
                 </div>
             </div>
@@ -506,9 +570,10 @@
 @push('scripts')
 <script>
     (function () {
-        const steps = @json(array_map(fn ($s) => ['id' => $s['id'], 'title' => $s['title']], $steps));
+        const steps = @json($stepsJs);
         const faqs = @json($faqs);
-        let current = 0;
+        const savedSteps = new Set(@json($savedSections));
+        let current = Math.max(0, steps.findIndex(s => s.id === @json($activeSection)));
 
         const progressBar = document.getElementById('fpiProgressBar');
         const faqTitle = document.getElementById('faqTitle');
@@ -527,6 +592,7 @@
             });
             document.querySelectorAll('.fpi-tab-btn').forEach(el => {
                 el.classList.toggle('active', el.getAttribute('data-step') === activeId);
+                el.classList.toggle('saved', savedSteps.has(el.getAttribute('data-step')));
             });
             document.querySelectorAll('.fpi-step-panel').forEach(el => {
                 el.classList.toggle('active', el.getAttribute('data-panel') === activeId);
@@ -615,6 +681,7 @@
             placeOfIncorporation: 'Place of Incorporation', countryOfIncorporation: 'Country of Incorporation',
             hasUbos: 'This field', fpiCategory: 'FPI Category', regulatoryStatus: 'Regulatory Status',
             pan: 'Indian PAN', bankAccountType: 'Account Type', signatureName: 'Authorized Signatory Name',
+            uploadedIncorpCert: 'Certificate of Incorporation', uploadedPanCopy: 'Copy of Indian PAN Card',
         };
         const PATTERNS = {
             pan: { re: /^[A-Za-z]{5}[0-9]{4}[A-Za-z]$/, msg: 'PAN must be 5 letters, 4 digits, then 1 letter (e.g. AAACG1234F).' },
@@ -628,6 +695,7 @@
         function clearError(el) {
             if (!el) return;
             el.classList.remove('is-invalid');
+            const up = el.closest('.fpi-file-upload'); if (up) up.classList.remove('is-invalid');
             const grp = el.closest('.fpi-form-group') || el.parentElement;
             const fb = grp && grp.querySelector('.fpi-invalid-feedback');
             if (fb) fb.remove();
@@ -635,6 +703,7 @@
         function setError(el, msg) {
             if (!el) return;
             el.classList.add('is-invalid');
+            const up = el.closest('.fpi-file-upload'); if (up) up.classList.add('is-invalid'); // hidden input -> flag the tile
             const grp = el.closest('.fpi-form-group') || el.parentElement;
             if (grp && !grp.querySelector('.fpi-invalid-feedback')) {
                 const fb = document.createElement('div');
@@ -646,6 +715,14 @@
             el.addEventListener('input', () => clearError(el), { once: true });
             el.addEventListener('change', () => clearError(el), { once: true });
         }
+
+        // Show chosen filename in the upload tiles
+        form.querySelectorAll('.fpi-file-upload input[type="file"]').forEach(inp => {
+            inp.addEventListener('change', () => {
+                const nameEl = inp.parentElement.querySelector('.fpi-file-name');
+                if (nameEl) nameEl.textContent = inp.files.length ? inp.files[0].name : 'Click to upload';
+            });
+        });
 
         // Validate a set of field names; returns array of {name, msg}
         function runRules(names) {
@@ -715,26 +792,27 @@
             return errs.length === 0;
         }
 
-        function validateAll() {
-            const allNames = steps.flatMap(s => fieldsInStep(s.id));
-            const errs = runRules(allNames);
-            const badSteps = applyErrors(errs);
-            if (errs.length) {
+        // ── Tab-wise save: validate ONLY the current section client-side, then
+        //    submit the form (with a hidden `section` field) so the server saves
+        //    just that section to its DB table(s) and pre-fills on reload. ──
+        const sectionField = document.getElementById('fpiSection');
+
+        function saveTab() {
+            const step = steps[current];
+            if (!validateStep(step.id)) {
                 errorBanner.style.display = '';
-                // jump to the first step (in wizard order) that has an error
-                const firstBad = steps.findIndex(s => badSteps.has(s.id));
-                if (firstBad >= 0) { current = firstBad; render(); }
-                const firstEl = fieldEl(errs[0].name);
-                if (firstEl) firstEl.focus();
-            } else {
-                errorBanner.style.display = 'none';
+                const firstEl = document.querySelector(`.fpi-step-panel[data-panel="${step.id}"] .is-invalid`);
+                if (firstEl && firstEl.focus) firstEl.focus();
+                return;
             }
-            return errs.length === 0;
+            errorBanner.style.display = 'none';
+            sectionField.value = step.id;
+            form.submit();   // programmatic submit bypasses the submit listener below
         }
 
-        form.addEventListener('submit', (e) => {
-            if (!validateAll()) e.preventDefault();
-        });
+        document.getElementById('fpiSaveTab').addEventListener('click', saveTab);
+        // Enter key inside the form triggers a section save, not a raw submit.
+        form.addEventListener('submit', (e) => { e.preventDefault(); saveTab(); });
 
         // ── Render server-side validation errors returned after a failed submit ──
         const serverErrors = @json($errors->messages());

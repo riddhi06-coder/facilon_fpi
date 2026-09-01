@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     :root {
       --primary: #3e6f7c;
@@ -217,5 +218,23 @@
     @yield('content')
   </div>
   @stack('scripts')
+
+  {{-- Success / error feedback via SweetAlert2 --}}
+  @if (session('status'))
+    <script>
+      document.addEventListener('DOMContentLoaded', () => Swal.fire({
+        icon: 'success', title: 'Saved', text: @json(session('status')),
+        timer: 2200, showConfirmButton: false, timerProgressBar: true,
+      }));
+    </script>
+  @endif
+  @if ($errors->any())
+    <script>
+      document.addEventListener('DOMContentLoaded', () => Swal.fire({
+        icon: 'error', title: 'Please fix the highlighted fields',
+        text: @json($errors->first()), confirmButtonColor: '#3e6f7c',
+      }));
+    </script>
+  @endif
 </body>
 </html>
