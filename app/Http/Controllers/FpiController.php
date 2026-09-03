@@ -119,7 +119,32 @@ class FpiController extends Controller
             $isSubmitted = in_array($status, ['SUBMITTED', 'UNDER_REVIEW', 'APPROVED'], true);
         }
 
-        return view('fpi.index', compact('form', 'countries', 'isdCodes', 'activeSection', 'savedSections', 'isSubmitted'));
+        // All applications, for the switcher (reopen any earlier one).
+        $applications = DB::table('applicants')
+            ->leftJoin('corporate_applicant_details', 'applicants.applicant_id', '=', 'corporate_applicant_details.applicant_id')
+            ->orderByDesc('applicants.applicant_id')
+            ->get(['applicants.applicant_id', 'applicants.application_status', 'corporate_applicant_details.company_name']);
+        $currentApplicantId = $applicantId;
+
+        return view('fpi.index', compact('form', 'countries', 'isdCodes', 'activeSection', 'savedSections', 'isSubmitted', 'applications', 'currentApplicantId'));
+    }
+
+    /** Start a fresh application (keeps the submitted record; just detaches the session draft). */
+    public function newApplication()
+    {
+        session()->forget('caf_applicant_id');
+        return redirect()->route('fpi.index')->with('status', 'Started a new application. You can begin entering details.');
+    }
+
+    /** Re-open an existing application (draft or submitted) by id. */
+    public function load($applicant)
+    {
+        if (DB::table('applicants')->where('applicant_id', $applicant)->exists()) {
+            session(['caf_applicant_id' => (int) $applicant]);
+            return redirect()->route('fpi.index')
+                ->with('status', 'Opened application FPI-' . str_pad($applicant, 6, '0', STR_PAD_LEFT) . '.');
+        }
+        return redirect()->route('fpi.index')->withErrors(['submit' => 'Application not found.']);
     }
 
     /** Professional printable / PDF preview of the whole application. */

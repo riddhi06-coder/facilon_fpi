@@ -164,6 +164,29 @@
         Please correct the highlighted fields in this section.
     </div>
 
+    {{-- Application switcher: reopen any earlier application, or start a new one --}}
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <span style="font-size:12.5px;color:var(--gray600);font-weight:600">Application:</span>
+        <select id="appSelect" class="fpi-select" style="width:auto;min-width:300px;height:32px">
+            <option value="">— New (unsaved) application —</option>
+            @foreach ($applications as $a)
+                <option value="{{ route('fpi.load', $a->applicant_id) }}" @selected($currentApplicantId == $a->applicant_id)>
+                    FPI-{{ str_pad($a->applicant_id, 6, '0', STR_PAD_LEFT) }} · {{ $a->company_name ?: '(draft)' }} · {{ $a->application_status }}
+                </option>
+            @endforeach
+        </select>
+        <button type="button" class="btn btn-ghost btn-sm" style="padding:5px 12px;font-size:12.5px" onclick="var v=document.getElementById('appSelect').value; if(v) window.location.href=v;">Open</button>
+        <button type="submit" form="fpiNewForm" class="btn btn-primary btn-sm" style="padding:5px 12px;font-size:12.5px">＋ New Application</button>
+    </div>
+
+    @if ($isSubmitted)
+        <div style="background:#eef3f5;border:1px solid var(--gray200);border-left:4px solid var(--primary);border-radius:6px;padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--gray700)">
+            🔒 This application has been <strong>submitted</strong> and is now <strong>read-only</strong>. Use <strong>Print / Preview</strong> on the last tab, pick another from <strong>Application</strong> above, or start a new one.
+        </div>
+    @endif
+
+    <form id="fpiNewForm" method="POST" action="{{ route('fpi.new') }}" style="display:none">@csrf</form>
+
     <form class="fpi-container" method="POST" action="{{ route('fpi.store') }}" id="fpiForm" enctype="multipart/form-data">
         @csrf
         <input type="hidden" name="section" id="fpiSection" value="applicant">
