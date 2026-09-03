@@ -113,7 +113,96 @@ class FpiController extends Controller
         $activeSection = session('active_section', 'applicant');
         $savedSections = $this->savedSections($applicantId);
 
-        return view('fpi.index', compact('form', 'countries', 'isdCodes', 'activeSection', 'savedSections'));
+        $isSubmitted = false;
+        if ($applicantId) {
+            $status = DB::table('applicants')->where('applicant_id', $applicantId)->value('application_status');
+            $isSubmitted = in_array($status, ['SUBMITTED', 'UNDER_REVIEW', 'APPROVED'], true);
+        }
+
+        return view('fpi.index', compact('form', 'countries', 'isdCodes', 'activeSection', 'savedSections', 'isSubmitted'));
+    }
+
+    /** Professional printable / PDF preview of the whole application. */
+    public function preview()
+    {
+        $id = session('caf_applicant_id');
+        if (!$id || !DB::table('applicants')->where('applicant_id', $id)->exists()) {
+            return redirect()->route('fpi.index')->withErrors(['submit' => 'No application to preview yet.']);
+        }
+
+        $countries = DB::table('m_countries')->pluck('label_en', 'country_id')->toArray();
+        $catLabels = DB::table('m_fpi_categories')->pluck('label_en', 'category_code')->toArray();
+
+        $p = [
+            'app'         => DB::table('applicants')->where('applicant_id', $id)->first(),
+            'corp'        => DB::table('corporate_applicant_details')->where('applicant_id', $id)->first(),
+            'aliases'     => DB::table('applicant_aliases')->where('applicant_id', $id)->get(),
+            'addresses'   => DB::table('applicant_addresses')->where('applicant_id', $id)->get(),
+            'contacts'    => DB::table('applicant_contacts')->where('applicant_id', $id)->get(),
+            'ubos'        => DB::table('ubo')->where('applicant_id', $id)->get(),
+            'tax'         => DB::table('tax_residencies')->where('applicant_id', $id)->get(),
+            'regulator'   => DB::table('applicant_foreign_regulators')->where('applicant_id', $id)->first(),
+            'pan'         => DB::table('pan_additional_details')->where('applicant_id', $id)->first(),
+            'bank'        => DB::table('depository_bank_accounts')->where('applicant_id', $id)->first(),
+            'office'      => DB::table('office_verification')->where('applicant_id', $id)->first(),
+            'custodian'   => DB::table('applicant_custodian_details')->where('applicant_id', $id)->first(),
+            'ims'         => DB::table('investment_managers')->where('applicant_id', $id)->get(),
+            'declaration' => DB::table('application_declaration')->where('applicant_id', $id)->first(),
+            'docs'        => DB::table('kyc_documents')->join('m_document_types', 'kyc_documents.doc_type_id', '=', 'm_document_types.doc_type_id')
+                                ->where('kyc_documents.applicant_id', $id)->get(['m_document_types.label_en', 'kyc_documents.file_storage_uri']),
+            'countries'   => $countries,
+            'catLabels'   => $catLabels,
+            'titleMap'    => $this->codeToTitle,
+            'generatedAt' => now()->format('d M Y, H:i'),
+        ];
+
+        return view('fpi.preview', $p);
+    }
+
+    /** Final submission: validate completeness, mark SUBMITTED, log status history. */
+    public function submit(Request $request)
+    {
+        $id = session('caf_applicant_id');
+        if (!$id || !DB::table('applicants')->where('applicant_id', $id)->exists()) {
+            $m = 'Please fill and save the form before submitting.';
+            return $request->wantsJson()
+                ? response()->json(['ok' => false, 'message' => $m], 422)
+                : redirect()->route('fpi.index')->withErrors(['submit' => $m]);
+        }
+
+        // Required sections must be saved before an application can be submitted.
+        $required = ['applicant', 'contact', 'ubo', 'financial', 'category', 'depository', 'declarations'];
+        $done = DB::table('application_section_progress')->where('applicant_id', $id)
+            ->where('is_complete', 1)->pluck('section_code')->toArray();
+        $missing = array_diff($required, $done);
+        if ($missing) {
+            $labels = [
+                'applicant' => 'Applicant Profile', 'contact' => 'Contact & Address', 'ubo' => 'Beneficial Ownership',
+                'financial' => 'Financial & Tax', 'category' => 'Category & Regulatory',
+                'depository' => 'PAN, Bank & Depository', 'declarations' => 'Final Declarations',
+            ];
+            $names = implode(', ', array_map(fn ($s) => $labels[$s] ?? $s, $missing));
+            $m = "Please complete & save these sections before submitting: {$names}.";
+            return $request->wantsJson()
+                ? response()->json(['ok' => false, 'message' => $m], 422)
+                : redirect()->route('fpi.index')->with('active_section', reset($missing))->withErrors(['submit' => $m]);
+        }
+
+        $current = DB::table('applicants')->where('applicant_id', $id)->value('application_status');
+        DB::table('applicants')->where('applicant_id', $id)->update(['application_status' => 'SUBMITTED']);
+        DB::table('application_status_history')->insert([
+            'applicant_id' => $id,
+            'from_status'  => $current,
+            'to_status'    => 'SUBMITTED',
+            'remarks'      => 'Application submitted by applicant.',
+        ]);
+
+        $m = 'Application submitted successfully. You can now Print / Preview your application.';
+        if ($request->wantsJson()) {
+            session()->flash('active_section', 'declarations'); // reopen final tab on the client's reload
+            return response()->json(['ok' => true, 'message' => $m]);
+        }
+        return redirect()->route('fpi.index')->with('status', $m)->with('active_section', 'declarations');
     }
 
     /** Section order for the wizard flow. */
@@ -159,6 +248,8 @@ class FpiController extends Controller
             $out['knownByAnotherName'] = 'YES';
             $out['otherTitle'] = $this->codeToTitle[$alias->alias_title_code] ?? '';
             $out['otherEntityName'] = $alias->alias_last_name_or_company;
+        } elseif ($corp) {
+            $out['knownByAnotherName'] = 'NO'; // applicant saved, no alias -> keep the "No" choice
         }
 
         // Tab 2 — Contact & Address
@@ -255,7 +346,7 @@ class FpiController extends Controller
         foreach ($docs as $d) {
             if (isset($docFieldByCode[$d->code])) {
                 $out[$docFieldByCode[$d->code]] = basename($d->file_storage_uri);
-                $out[$docFieldByCode[$d->code] . '_uri'] = 'storage/' . $d->file_storage_uri;
+                $out[$docFieldByCode[$d->code] . '_uri'] = $d->file_storage_uri; // already public-relative
             }
         }
 
@@ -281,24 +372,27 @@ class FpiController extends Controller
                 'leiExpiryDate'                 => ['nullable', 'date'],
             ],
             'contact' => [
-                'regAddressLine1' => ['nullable', 'string', 'max:150'],
-                'regAddressLine2' => ['nullable', 'string', 'max:150'],
-                'regAddressLine3' => ['nullable', 'string', 'max:150'],
-                'regCity'         => ['nullable', 'string', 'max:100'],
-                'regState'        => ['nullable', 'string', 'max:100'],
-                'regCountry'      => ['nullable', 'string', 'max:100'],
-                'regZip'          => ['nullable', 'string', 'max:20'],
+                // Registered address — all required
+                'regAddressLine1' => ['required', 'string', 'max:150'],
+                'regAddressLine2' => ['required', 'string', 'max:150'],
+                'regAddressLine3' => ['required', 'string', 'max:150'],
+                'regCity'         => ['required', 'string', 'max:100'],
+                'regState'        => ['required', 'string', 'max:100'],
+                'regCountry'      => ['required', 'integer', Rule::exists('m_countries', 'country_id')],
+                'regZip'          => ['required', 'string', 'max:20'],
                 'sameAddress'     => ['nullable'],
-                'commAddressLine1' => ['nullable', 'string', 'max:150'],
-                'commAddressLine2' => ['nullable', 'string', 'max:150'],
-                'commAddressLine3' => ['nullable', 'string', 'max:150'],
-                'commCity'        => ['nullable', 'string', 'max:100'],
-                'commState'       => ['nullable', 'string', 'max:100'],
-                'commCountry'     => ['nullable', 'string', 'max:100'],
-                'commZip'         => ['nullable', 'string', 'max:20'],
+                // Correspondence address — required only when NOT "same as registered"
+                'commAddressLine1' => ['required_without:sameAddress', 'nullable', 'string', 'max:150'],
+                'commAddressLine2' => ['required_without:sameAddress', 'nullable', 'string', 'max:150'],
+                'commAddressLine3' => ['required_without:sameAddress', 'nullable', 'string', 'max:150'],
+                'commCity'        => ['required_without:sameAddress', 'nullable', 'string', 'max:100'],
+                'commState'       => ['required_without:sameAddress', 'nullable', 'string', 'max:100'],
+                'commCountry'     => ['required_without:sameAddress', 'nullable', 'integer', Rule::exists('m_countries', 'country_id')],
+                'commZip'         => ['required_without:sameAddress', 'nullable', 'string', 'max:20'],
+                // Contact — telephone optional, mobile + email required
                 'telNumber'       => ['nullable', 'string', 'max:20'],
-                'mobileNumber'    => ['nullable', 'string', 'max:20', $this->mobileRule()],
-                'email'           => ['nullable', 'email', 'max:100'],
+                'mobileNumber'    => ['required', 'string', 'max:20', $this->mobileRule()],
+                'email'           => ['required', 'email', 'max:100'],
             ],
             'ubo' => [
                 'hasUbos'        => ['required', Rule::in(['YES', 'NO'])],
@@ -405,10 +499,18 @@ class FpiController extends Controller
             'lei' => $request->filled('lei') ? strtoupper((string) $request->input('lei')) : $request->input('lei'),
         ]);
 
+        $autofill = $request->boolean('_autofill');
+
         // Validate ONLY the submitted section's fields (tab-wise).
         $rules = $this->sectionRules()[$section] ?? [];
         if ($section === 'declarations') {
             $rules = $this->relaxUploadedDocRules($rules);
+            if ($autofill) {
+                // Auto-fill can't attach real files; documents are seeded below.
+                foreach (['uploadedIncorpCert', 'uploadedPanCopy'] as $f) {
+                    $rules[$f] = ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'];
+                }
+            }
         }
         $request->validate($rules, $this->messages());
 
@@ -427,6 +529,9 @@ class FpiController extends Controller
         if (method_exists($this, $method)) {
             $this->{$method}($request, $applicantId);
         }
+        if ($section === 'declarations' && $autofill) {
+            $this->seedPlaceholderDocs($applicantId);
+        }
         DB::table('application_section_progress')->updateOrInsert(
             ['applicant_id' => $applicantId, 'section_code' => $section],
             ['is_complete' => 1]
@@ -435,13 +540,35 @@ class FpiController extends Controller
         // Advance to the next tab on a successful save.
         $idx = array_search($section, $this->order, true);
         $next = ($idx !== false && isset($this->order[$idx + 1])) ? $this->order[$idx + 1] : $section;
-
         $msg = ($labels[$section] ?? 'Section') . ' saved successfully.';
 
-        return redirect()
-            ->route('fpi.index')
-            ->with('status', $msg)
-            ->with('active_section', $next);
+        if ($request->wantsJson()) {
+            return response()->json(['ok' => true, 'section' => $section, 'next' => $next, 'message' => $msg]);
+        }
+
+        return redirect()->route('fpi.index')->with('status', $msg)->with('active_section', $next);
+    }
+
+    /** Create small placeholder PDF documents (used by auto-fill only). */
+    private function seedPlaceholderDocs(int $id): void
+    {
+        $pdf = "%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF";
+        foreach (['INCORP' => 'sample-incorporation.pdf', 'PANCOPY' => 'sample-pan.pdf'] as $code => $fname) {
+            $type = DB::table('m_document_types')->where('code', $code)->first();
+            if (!$type || DB::table('kyc_documents')->where('applicant_id', $id)->where('doc_type_id', $type->doc_type_id)->exists()) {
+                continue;
+            }
+            $dir = public_path("uploads/kyc/{$id}/{$code}");
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            file_put_contents("{$dir}/{$fname}", $pdf);
+            $path = "uploads/kyc/{$id}/{$code}/{$fname}";
+            DB::table('kyc_documents')->insert([
+                'applicant_id' => $id, 'doc_type_id' => $type->doc_type_id,
+                'document_purpose' => $type->purpose, 'file_storage_uri' => $path, 'is_verified' => 0,
+            ]);
+        }
     }
 
     /** For an already-uploaded mandatory document, drop the "required" rule. */
@@ -704,9 +831,14 @@ class FpiController extends Controller
             if (!$type) {
                 continue;
             }
-            // Keep the original filename (per applicant + doc code) so it displays back.
+            // Store directly under public/uploads/kyc/{id}/{code}/<original name>.
             $original = $request->file($field)->getClientOriginalName();
-            $path = $request->file($field)->storeAs("kyc/{$id}/{$code}", $original, 'public');
+            $dir = public_path("uploads/kyc/{$id}/{$code}");
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            $request->file($field)->move($dir, $original);
+            $path = "uploads/kyc/{$id}/{$code}/{$original}";
             DB::table('kyc_documents')->where('applicant_id', $id)->where('doc_type_id', $type->doc_type_id)->delete();
             DB::table('kyc_documents')->insert([
                 'applicant_id'     => $id,

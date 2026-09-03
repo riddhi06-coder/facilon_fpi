@@ -36,7 +36,7 @@
 
     body {
       font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      font-size: 13px;
+      font-size: 15px;
       background: #eef1f4;
       color: var(--gray900);
       -webkit-font-smoothing: antialiased;
@@ -78,7 +78,7 @@
     }
 
     .brand-tag {
-      font-size: 11px;
+      font-size: 12.5px;
       font-weight: 600;
       color: var(--primary);
       letter-spacing: .2px;
@@ -138,17 +138,17 @@
     }
 
     .page-head h1 {
-      font-size: 19px;
+      font-size: 22px;
       font-weight: 700;
       letter-spacing: -.2px;
       color: #fff;
     }
 
     .page-head p {
-      font-size: 12.5px;
+      font-size: 14px;
       color: rgba(255, 255, 255, .85);
       margin-top: 3px;
-      max-width: 720px;
+      max-width: 760px;
     }
 
     .page-wrap {
@@ -172,9 +172,9 @@
       align-items: center;
       justify-content: center;
       gap: 5px;
-      padding: 0 10px;
-      height: 26px;
-      font-size: 11px;
+      padding: 0 12px;
+      height: 30px;
+      font-size: 12.5px;
       font-weight: 500;
       border-radius: 4px;
       border: 1px solid transparent;
@@ -189,7 +189,7 @@
     .btn-outline { background: #fff; border-color: var(--primary); color: var(--primary); }
     .btn-ghost { background: var(--gray100); color: var(--gray700); border-color: var(--gray200); }
     .btn-full { width: 100%; }
-    .btn-sm { height: 24px; font-size: 10.5px; padding: 0 8px; }
+    .btn-sm { height: 28px; font-size: 12px; padding: 0 10px; }
   </style>
   @stack('styles')
 </head>

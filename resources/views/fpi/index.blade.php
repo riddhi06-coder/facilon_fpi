@@ -80,31 +80,30 @@
     .fpi-step.active .fpi-step-label { font-weight: 700; opacity: 1; text-shadow: 0 1px 2px rgba(0,0,0,.1); }
 
     .fpi-tabs {
-        display: flex; background: #fff; border: 1px solid var(--gray200); border-bottom: none;
-        border-top-left-radius: 8px; border-top-right-radius: 8px; overflow-x: auto; scrollbar-width: none;
+        display: flex; flex-wrap: wrap; background: #fff; border: 1px solid var(--gray200); border-bottom: none;
+        border-top-left-radius: 8px; border-top-right-radius: 8px; row-gap: 2px;
     }
-    .fpi-tabs::-webkit-scrollbar { display: none; }
     .fpi-tab-btn {
-        padding: 10px 14px; font-size: 11px; font-weight: 500; color: var(--gray500); background: transparent;
-        border: none; border-bottom: 3px solid transparent; white-space: nowrap; cursor: pointer; transition: all .15s;
+        flex: 1 1 auto; text-align: center; padding: 11px 12px; font-size: 12.5px; font-weight: 500; color: var(--gray500);
+        background: transparent; border: none; border-bottom: 3px solid transparent; white-space: nowrap; cursor: pointer; transition: all .15s;
     }
     .fpi-tab-btn:hover { color: var(--primary); background: #f1fcfe; }
     .fpi-tab-btn.active { color: var(--primary); background: #dff1f5; border-bottom-color: var(--primary); font-weight: 600; }
 
     .fpi-card { background: #fff; border: 1px solid var(--gray200); border-top: none; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; padding: 16px; margin-bottom: 16px; }
-    .fpi-card-heading { font-size: 13px; font-weight: 600; color: var(--gray900); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--gray100); }
+    .fpi-card-heading { font-size: 15px; font-weight: 600; color: var(--gray900); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--gray100); }
     .fpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px 16px; }
     .fpi-form-group { display: flex; flex-direction: column; gap: 4px; }
     .fpi-form-group.col-span-full { grid-column: 1 / -1; }
-    .fpi-label { font-size: 10.5px; font-weight: 500; color: var(--gray700); display: flex; align-items: center; gap: 2px; }
+    .fpi-label { font-size: 12px; font-weight: 500; color: var(--gray700); display: flex; align-items: center; gap: 2px; }
     .fpi-req { color: var(--danger); }
     .fpi-input, .fpi-select {
-        width: 100%; height: 28px; padding: 4px 8px; background: #fff; border: 1px solid var(--gray200);
-        border-radius: 4px; font-size: 11px; font-weight: 500; color: var(--gray900); outline: none; transition: border-color .15s;
+        width: 100%; height: 34px; padding: 6px 10px; background: #fff; border: 1px solid var(--gray200);
+        border-radius: 4px; font-size: 13px; font-weight: 500; color: var(--gray900); outline: none; transition: border-color .15s;
     }
     .fpi-input:focus, .fpi-select:focus { border-color: var(--primary); }
     .fpi-input:disabled, .fpi-select:disabled { background: #f7f9fa; color: #9ab0b8; cursor: not-allowed; }
-    .fpi-sub-heading { font-size: 11px; font-weight: 600; color: var(--gray700); margin-bottom: 8px; }
+    .fpi-sub-heading { font-size: 12.5px; font-weight: 600; color: var(--gray700); margin-bottom: 8px; }
     .fpi-file-upload {
         border: 1.5px dashed var(--gray200); background: #f8fafb; border-radius: 4px; padding: 12px;
         display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; text-align: center; min-height: 80px; transition: all .15s;
@@ -121,6 +120,18 @@
     /* validation states */
     .fpi-input.is-invalid, .fpi-select.is-invalid { border-color: var(--danger); background: #fdf3f2; }
     .fpi-invalid-feedback { font-size: 10px; color: var(--danger); margin-top: 2px; }
+    /* Highlighted Print / Preview button (post-submission) */
+    .fpi-print-btn {
+        background: #f0a500; color: #3d2c00; border: 1px solid #d98f00; font-weight: 700;
+        box-shadow: 0 0 0 0 rgba(240, 165, 0, .55); animation: fpiPulse 1.7s ease-out infinite;
+    }
+    .fpi-print-btn:hover { background: #ffb717; filter: none; }
+    @keyframes fpiPulse {
+        0%   { box-shadow: 0 0 0 0 rgba(240, 165, 0, .55); }
+        70%  { box-shadow: 0 0 0 9px rgba(240, 165, 0, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(240, 165, 0, 0); }
+    }
+
     .fpi-tab-btn.has-error { color: var(--danger); }
     .fpi-tab-btn.has-error::after { content: ' !'; font-weight: 700; }
     .fpi-tab-btn.saved::before { content: '✓ '; color: var(--success); font-weight: 700; }
@@ -131,8 +142,8 @@
 
     /* UBO determination tool (embedded) */
     .ubo-card { background: #fff; border: 1px solid var(--gray200); border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
-    .ubo-card-title { font-size: 14px; font-weight: 600; color: var(--gray900); margin-bottom: 12px; }
-    .ubo-input, .ubo-select { height: 32px; padding: 6px 10px; border: 1px solid var(--gray200); border-radius: 4px; font-size: 12px; outline: none; background: #fff; font-family: inherit; }
+    .ubo-card-title { font-size: 15.5px; font-weight: 600; color: var(--gray900); margin-bottom: 12px; }
+    .ubo-input, .ubo-select { height: 36px; padding: 6px 10px; border: 1px solid var(--gray200); border-radius: 4px; font-size: 13.5px; outline: none; background: #fff; font-family: inherit; }
     .ubo-btn { padding: 6px 14px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: background .15s; font-family: inherit; }
     .ubo-btn-primary { background: #0b5ed7; color: #fff; }
     .ubo-btn-primary:hover { background: #0a58ca; }
@@ -257,12 +268,12 @@
                 <div class="fpi-card-heading">Step 2: Contact & Address Details</div>
                 <div class="fpi-sub-heading">Registered Address</div>
                 <div class="fpi-grid" style="margin-bottom:16px">
-                    <div class="fpi-form-group"><label class="fpi-label">Address Line 1</label><input class="fpi-input" type="text" name="regAddressLine1" value="{{ $form['regAddressLine1'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">Address Line 2</label><input class="fpi-input" type="text" name="regAddressLine2" value="{{ $form['regAddressLine2'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">Address Line 3</label><input class="fpi-input" type="text" name="regAddressLine3" value="{{ $form['regAddressLine3'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">City</label><input class="fpi-input" type="text" name="regCity" value="{{ $form['regCity'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">State / Province</label><input class="fpi-input" type="text" name="regState" value="{{ $form['regState'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">Country</label>
+                    <div class="fpi-form-group"><label class="fpi-label">Address Line 1 <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="regAddressLine1" value="{{ $form['regAddressLine1'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Address Line 2 <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="regAddressLine2" value="{{ $form['regAddressLine2'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Address Line 3 <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="regAddressLine3" value="{{ $form['regAddressLine3'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">City <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="regCity" value="{{ $form['regCity'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">State / Province <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="regState" value="{{ $form['regState'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Country <span class="fpi-req">*</span></label>
                         <select class="fpi-select" name="regCountry">
                             <option value="" @selected($form['regCountry'] === '')>Select</option>
                             @foreach ($countries as $c)
@@ -270,7 +281,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="fpi-form-group"><label class="fpi-label">ZIP / Postal Code</label><input class="fpi-input" type="text" name="regZip" value="{{ $form['regZip'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">ZIP / Postal Code <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="regZip" value="{{ $form['regZip'] }}"></div>
                 </div>
 
                 <div class="fpi-sub-heading" style="display:flex;align-items:center;gap:8px">
@@ -280,12 +291,12 @@
                     </label>
                 </div>
                 <div class="fpi-grid" id="commAddressGrid">
-                    <div class="fpi-form-group"><label class="fpi-label">Address Line 1</label><input class="fpi-input comm-field" type="text" name="commAddressLine1" value="{{ $form['commAddressLine1'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">Address Line 2</label><input class="fpi-input comm-field" type="text" name="commAddressLine2" value="{{ $form['commAddressLine2'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">Address Line 3</label><input class="fpi-input comm-field" type="text" name="commAddressLine3" value="{{ $form['commAddressLine3'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">City</label><input class="fpi-input comm-field" type="text" name="commCity" value="{{ $form['commCity'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">State / Province</label><input class="fpi-input comm-field" type="text" name="commState" value="{{ $form['commState'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">Country</label>
+                    <div class="fpi-form-group"><label class="fpi-label">Address Line 1 <span class="fpi-req comm-req">*</span></label><input class="fpi-input comm-field" type="text" name="commAddressLine1" value="{{ $form['commAddressLine1'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Address Line 2 <span class="fpi-req comm-req">*</span></label><input class="fpi-input comm-field" type="text" name="commAddressLine2" value="{{ $form['commAddressLine2'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Address Line 3 <span class="fpi-req comm-req">*</span></label><input class="fpi-input comm-field" type="text" name="commAddressLine3" value="{{ $form['commAddressLine3'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">City <span class="fpi-req comm-req">*</span></label><input class="fpi-input comm-field" type="text" name="commCity" value="{{ $form['commCity'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">State / Province <span class="fpi-req comm-req">*</span></label><input class="fpi-input comm-field" type="text" name="commState" value="{{ $form['commState'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Country <span class="fpi-req comm-req">*</span></label>
                         <select class="fpi-select comm-field" name="commCountry">
                             <option value="" @selected($form['commCountry'] === '')>Select</option>
                             @foreach ($countries as $c)
@@ -293,14 +304,14 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="fpi-form-group"><label class="fpi-label">ZIP / Postal Code</label><input class="fpi-input comm-field" type="text" name="commZip" value="{{ $form['commZip'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">ZIP / Postal Code <span class="fpi-req comm-req">*</span></label><input class="fpi-input comm-field" type="text" name="commZip" value="{{ $form['commZip'] }}"></div>
                 </div>
 
                 <div class="fpi-sub-heading" style="margin-top:16px">Contact Details</div>
                 <div class="fpi-grid">
                     <div class="fpi-form-group"><label class="fpi-label">Telephone Number</label><input class="fpi-input" type="text" name="telNumber" value="{{ $form['telNumber'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">Mobile Number</label><input class="fpi-input" type="text" name="mobileNumber" value="{{ $form['mobileNumber'] }}"></div>
-                    <div class="fpi-form-group" style="grid-column: span 2"><label class="fpi-label">Email Address</label><input class="fpi-input" type="email" name="email" value="{{ $form['email'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Mobile Number <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="mobileNumber" value="{{ $form['mobileNumber'] }}"></div>
+                    <div class="fpi-form-group" style="grid-column: span 2"><label class="fpi-label">Email Address <span class="fpi-req">*</span></label><input class="fpi-input" type="email" name="email" value="{{ $form['email'] }}"></div>
                 </div>
             </div>
 
@@ -551,17 +562,22 @@
 
             {{-- Actions --}}
             <div class="fpi-actions">
-                <div>
-                    <button type="button" class="btn btn-ghost btn-sm" id="fpiPrev" style="padding:4px 10px;font-size:11px;display:none">Previous</button>
+                <div style="display:flex;gap:6px">
+                    <button type="button" class="btn btn-ghost btn-sm" id="fpiPrev" style="padding:5px 12px;font-size:12.5px;display:none">Previous</button>
+                    <button type="button" class="btn btn-outline btn-sm" id="fpiAutofillSection" style="padding:5px 12px;font-size:12.5px">⚡ Auto-fill &amp; Save All</button>
                 </div>
                 <div style="display:flex;gap:6px">
-                    <button type="button" class="btn btn-ghost btn-sm" id="fpiPrintPreview" onclick="window.print()" style="padding:4px 10px;font-size:11px;display:none">Print Preview</button>
-                    <button type="button" class="btn btn-primary btn-sm" id="fpiSaveTab" style="padding:4px 12px;font-size:11px">Save Section</button>
-                    <button type="button" class="btn btn-primary btn-sm" id="fpiNext" style="padding:4px 12px;font-size:11px">Next</button>
+                    <a href="{{ route('fpi.preview') }}" target="_blank" rel="noopener" class="btn btn-sm fpi-print-btn" id="fpiPrintPreview" style="padding:5px 14px;font-size:12.5px;display:none;text-decoration:none">🖨 Print / Preview</a>
+                    <button type="button" class="btn btn-primary btn-sm" id="fpiSaveTab" style="padding:5px 14px;font-size:12.5px">Save Section</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="fpiNext" style="padding:5px 14px;font-size:12.5px">Next</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="fpiSubmit" style="padding:5px 14px;font-size:12.5px;display:none;background:var(--success)" disabled>Submit Application</button>
                 </div>
             </div>
         </div>
     </form>
+
+    {{-- Hidden form for final submission (manual button) --}}
+    <form id="fpiSubmitForm" method="POST" action="{{ route('fpi.submit') }}" style="display:none">@csrf</form>
 @endsection
 
 @push('scripts')
@@ -570,6 +586,8 @@
         const steps = @json($stepsJs);
         const faqs = @json($faqs);
         const savedSteps = new Set(@json($savedSections));
+        let IS_SUBMITTED = @json($isSubmitted);
+        const CSRF = document.querySelector('meta[name="csrf-token"]').content;
         let current = Math.max(0, steps.findIndex(s => s.id === @json($activeSection)));
 
         const progressBar = document.getElementById('fpiProgressBar');
@@ -582,10 +600,11 @@
             const activeId = steps[current].id;
 
             document.querySelectorAll('.fpi-step').forEach((el, i) => {
+                const done = savedSteps.has(el.getAttribute('data-step')) || i < current;
                 el.classList.toggle('active', i === current);
-                el.classList.toggle('completed', i < current);
+                el.classList.toggle('completed', done);
                 const dot = el.querySelector('.fpi-step-dot');
-                dot.textContent = i < current ? '✓' : el.getAttribute('data-index') * 1 + 1;
+                dot.textContent = done ? '✓' : (i + 1);
             });
             document.querySelectorAll('.fpi-tab-btn').forEach(el => {
                 el.classList.toggle('active', el.getAttribute('data-step') === activeId);
@@ -599,12 +618,26 @@
             prevBtn.style.display = current === 0 ? 'none' : '';
             nextBtn.style.display = current === steps.length - 1 ? 'none' : '';
 
-            // Print Preview appears only once the Final Declarations tab is submitted.
-            const submitted = savedSteps.has('declarations');
+            // Final-tab controls: Submit + Print/Preview only on the declarations tab.
+            const onFinal = activeId === 'declarations';
+            const declSaved = savedSteps.has('declarations');
+
+            const submitBtn = document.getElementById('fpiSubmit');
+            if (submitBtn) {
+                submitBtn.style.display = (onFinal && !IS_SUBMITTED) ? '' : 'none';
+                submitBtn.disabled = !declSaved;                 // enabled only after Save Section done
+                submitBtn.title = declSaved ? '' : 'Save this section first to enable submission';
+            }
+            // Save Section / Auto-fill hidden after the application is submitted (read-only).
+            if (IS_SUBMITTED) {
+                document.getElementById('fpiSaveTab').style.display = 'none';
+                document.getElementById('fpiAutofillSection').style.display = 'none';
+            }
+
             const printBtn = document.getElementById('fpiPrintPreview');
-            if (printBtn) printBtn.style.display = submitted ? '' : 'none';
+            if (printBtn) printBtn.style.display = (IS_SUBMITTED && onFinal) ? '' : 'none';
             const note = document.getElementById('fpiSubmittedNote');
-            if (note) note.style.display = (submitted && activeId === 'declarations') ? '' : 'none';
+            if (note) note.style.display = (IS_SUBMITTED && onFinal) ? '' : 'none';
 
             // FAQs
             faqTitle.textContent = steps[current].title;
@@ -670,6 +703,8 @@
                 commEl.disabled = on;
                 if (on) commEl.value = regEl.value;
             });
+            // Hide correspondence-address asterisks when it mirrors the registered address.
+            document.querySelectorAll('.comm-req').forEach(a => { a.style.display = on ? 'none' : ''; });
         }
         sameAddress.addEventListener('change', syncComm);
         Object.values(regMap).forEach(reg => {
@@ -686,6 +721,12 @@
             hasUbos: 'This field', fpiCategory: 'FPI Category', regulatoryStatus: 'Regulatory Status',
             pan: 'Indian PAN', bankAccountType: 'Account Type', signatureName: 'Authorized Signatory Name',
             uploadedIncorpCert: 'Certificate of Incorporation', uploadedPanCopy: 'Copy of Indian PAN Card',
+            // Contact tab — everything except telephone
+            regAddressLine1: 'Address Line 1', regAddressLine2: 'Address Line 2', regAddressLine3: 'Address Line 3',
+            regCity: 'City', regState: 'State', regCountry: 'Country', regZip: 'PIN / ZIP',
+            commAddressLine1: 'Address Line 1', commAddressLine2: 'Address Line 2', commAddressLine3: 'Address Line 3',
+            commCity: 'City', commState: 'State', commCountry: 'Country', commZip: 'PIN / ZIP',
+            mobileNumber: 'Mobile Number', email: 'Email',
         };
         const PATTERNS = {
             pan: { re: /^[A-Za-z]{5}[0-9]{4}[A-Za-z]$/, msg: 'PAN must be 5 letters, 4 digits, then 1 letter (e.g. AAACG1234F).' },
@@ -850,6 +891,122 @@
         // Enter key inside the form triggers a section save, not a raw submit.
         form.addEventListener('submit', (e) => { e.preventDefault(); saveTab(); });
 
+        // ── Final submission: validate EVERY section, then submit ──
+        function validateAll() {
+            let all = [];
+            steps.forEach(s => { if (s.id !== 'ubo_tool') all = all.concat(runRules(fieldsInStep(s.id))); });
+            const badSteps = applyErrors(all);
+
+            let uboBad = false;
+            if (window.__uboValid && !window.__uboValid()) {
+                uboBad = true;
+                const at = document.getElementById('applicantType'); if (at) at.classList.add('is-invalid');
+                document.querySelectorAll('.fpi-tab-btn').forEach(b => { if (b.getAttribute('data-step') === 'ubo_tool') b.classList.add('has-error'); });
+            }
+
+            if (all.length || uboBad) {
+                let firstBad = steps.findIndex(s => badSteps.has(s.id));
+                if (uboBad) { const ui = steps.findIndex(s => s.id === 'ubo_tool'); if (firstBad < 0 || ui < firstBad) firstBad = ui; }
+                if (firstBad >= 0) { current = firstBad; render(); }
+                errorBanner.style.display = '';
+                const firstEl = all.length ? fieldEl(all[0].name) : document.getElementById('applicantType');
+                if (firstEl && firstEl.focus) firstEl.focus();
+                return false;
+            }
+            errorBanner.style.display = 'none';
+            return true;
+        }
+
+        const submitBtn = document.getElementById('fpiSubmit');
+        submitBtn.addEventListener('click', () => {
+            if (submitBtn.disabled) return;
+            if (!validateAll()) {
+                Swal.fire({ icon: 'error', title: 'Please complete all sections', text: 'Some required fields are missing or invalid. The first section needing attention has been opened.', confirmButtonColor: '#3e6f7c' });
+                return;
+            }
+            Swal.fire({
+                icon: 'question', title: 'Submit application?',
+                text: 'Please review all details. After submission the form becomes read-only.',
+                showCancelButton: true, confirmButtonText: 'Yes, submit', confirmButtonColor: '#27ae60', cancelButtonText: 'Cancel',
+            }).then(r => { if (r.isConfirmed) document.getElementById('fpiSubmitForm').submit(); });
+        });
+
+        // ── Sequential Auto-fill: fill tab → save tab → next … → submit → Print Preview ──
+        function setField(name, value) {
+            const el = form.querySelector(`[name="${name}"]`);
+            if (!el) return;
+            if (el.type === 'checkbox') el.checked = !!value; else el.value = value;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        const SAMPLE = {
+            applicant: { nameTitle: 'M/S', entityName: 'GLOBAL ALPHAS FPI FUND', knownByAnotherName: 'NO', dateOfIncorporation: '2015-06-12', dateOfCommencementOfBusiness: '2015-07-01', placeOfIncorporation: 'NEW YORK', countryOfIncorporation: '2', lei: '549300INF823N7179062', leiExpiryDate: '2027-06-12' },
+            contact: { regAddressLine1: '120 BROADWAY', regAddressLine2: 'SUITE 3000', regAddressLine3: 'FINANCIAL DISTRICT', regCity: 'NEW YORK', regState: 'NEW YORK', regCountry: '2', regZip: '10271', sameAddress: true, telNumber: '+1-212-555-0199', mobileNumber: '+1-917-555-0144', email: 'compliance@globalalphasfund.com' },
+            ubo: { hasUbos: 'YES', uboName: 'JOHNATHAN DAVIS', uboDob: '1970-04-18', uboNationality: '2', uboPassport: 'USA839103982', uboOwnership: '35', uboAddress: '55 EAST 72ND ST, NEW YORK, NY 10021' },
+            financial: { incomeRange: 'ABOVE_1M', netWorth: '45000000', netWorthDate: '2026-03-31', taxCountry: '2', tin: '13-3918239' },
+            category: { fpiCategory: 'CAT_I', regulatoryStatus: 'REGULATED', regulatorName: 'SECURITIES AND EXCHANGE COMMISSION (SEC)', licenseNumber: 'SEC-FPI-9281A', regulatorJurisdiction: '2' },
+            depository: { pan: 'AAACG1234F', bankName: 'CITIBANK N.A. MUMBAI', bankAccount: '98765432101', bankAccountType: 'NRO', bankSwift: 'CITIINBX', custodianName: 'DEUTSCHE BANK AG', dpId: 'IN300162', clientId: '10928374' },
+            additional: { primaryContactName: 'SARAH JENKINS', primaryContactDesignation: 'COMPLIANCE OFFICER', investmentManagerName: 'ALPHA ASSET MANAGEMENT LLC', indiaPlaceOfBusiness: 'NONE' },
+            declarations: { signatureName: 'SARAH JENKINS', declarationAgreed: true },
+        };
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        async function saveSectionAjax(id) {
+            const fd = new FormData();
+            fd.append('_token', CSRF);
+            fd.append('section', id);
+            fd.append('_autofill', '1');
+            fieldsInStep(id).forEach(n => {
+                const el = fieldEl(n);
+                if (!el) return;
+                fd.append(n, el.type === 'checkbox' ? (el.checked ? 'on' : '') : (el.value ?? ''));
+            });
+            if (id === 'ubo_tool' && window.__uboSerialize) fd.append('uboStructure', window.__uboSerialize());
+            const res = await fetch(@json(route('fpi.store')), {
+                method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: fd,
+            });
+            return res.ok;
+        }
+
+        async function autofillFlow() {
+            const order = steps.map(s => s.id);
+            for (const id of order) {
+                current = order.indexOf(id); render();
+                if (id === 'ubo_tool') { if (window.__uboFill) window.__uboFill(); }
+                else { const d = SAMPLE[id]; if (d) Object.entries(d).forEach(([k, v]) => setField(k, v)); }
+                Swal.update({ title: `Filling "${steps[current].tab}"…`, html: 'Saving to database…' });
+                await sleep(550);                       // visible fill
+                const ok = await saveSectionAjax(id);
+                if (!ok) { Swal.fire({ icon: 'error', title: 'Auto-fill stopped', text: `Could not save the "${steps[current].tab}" section.`, confirmButtonColor: '#3e6f7c' }); return; }
+                savedSteps.add(id); render();
+                await sleep(350);                       // let the ✓ show
+            }
+            // Final submission
+            Swal.update({ title: 'Submitting application…', html: '' });
+            const sres = await fetch(@json(route('fpi.submit')), {
+                method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: (() => { const f = new FormData(); f.append('_token', CSRF); return f; })(),
+            });
+            if (!sres.ok) { const j = await sres.json().catch(() => ({})); Swal.fire({ icon: 'error', title: 'Submission failed', text: j.message || 'Please review the sections.', confirmButtonColor: '#3e6f7c' }); return; }
+            IS_SUBMITTED = true;
+            current = order.indexOf('declarations'); render();
+            // Reload so the server re-renders the uploaded documents (with preview links) + submitted state.
+            Swal.fire({ icon: 'success', title: 'Application submitted', text: 'All tabs were filled, saved and submitted. You can now use Print / Preview.', confirmButtonColor: '#27ae60' })
+                .then(() => window.location.reload());
+        }
+
+        document.getElementById('fpiAutofillSection').addEventListener('click', () => {
+            Swal.fire({
+                icon: 'question', title: 'Auto-fill & submit?',
+                text: 'This fills each tab, saves it, then submits the application — step by step.',
+                showCancelButton: true, confirmButtonText: 'Yes, run it', confirmButtonColor: '#3e6f7c', cancelButtonText: 'Cancel',
+            }).then(r => {
+                if (!r.isConfirmed) return;
+                Swal.fire({ title: 'Starting…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                autofillFlow();
+            });
+        });
+
         // ── Render server-side validation errors returned after a failed submit ──
         const serverErrors = @json($errors->messages());
         if (Object.keys(serverErrors).length) {
@@ -901,6 +1058,24 @@
             return JSON.stringify({ entities });
         };
         window.__uboValid = () => !!applicantTypeEl.value;
+
+        // Seed the tool with a sample ownership tree (per-tab Auto-fill).
+        window.__uboFill = () => {
+            const appName = (document.querySelector('[name="entityName"]')?.value || 'GLOBAL ALPHAS FPI FUND').trim();
+            const subId = newId('sub');
+            entities = [
+                { id: 'applicant', name: appName, type: 'Company', owners: [
+                    { id: newId('own'), name: 'Alpha Holdings LLC', type: 'Entity', pct: 60, targetId: subId },
+                    { id: newId('own'), name: 'Johnathan Davis', type: 'Individual', pct: 40 },
+                ] },
+                { id: subId, name: 'Alpha Holdings LLC', type: 'Company', owners: [
+                    { id: newId('own'), name: 'Sarah Jenkins', type: 'Individual', pct: 80 },
+                    { id: newId('own'), name: 'Mike Smith', type: 'Individual', pct: 20 },
+                ] },
+            ];
+            applicantTypeEl.value = 'Company';
+            renderHierarchy();
+        };
 
         function updateEntityName(entityId, newName) {
             entities.forEach(ent => {
