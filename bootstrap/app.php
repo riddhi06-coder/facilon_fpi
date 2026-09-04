@@ -11,7 +11,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // TLS terminates at Cloudflare and reaches Apache as plain HTTP on :80,
+        // so the original scheme only survives in X-Forwarded-Proto. Without
+        // this, route()/url() emit http:// links that browsers block as mixed
+        // content on the https:// page.
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

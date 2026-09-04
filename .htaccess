@@ -12,6 +12,10 @@
     # This app serves from its own root (not public/), so without these rules
     # the whole source tree is web-readable. Deny application internals.
     RewriteRule ^(app|bootstrap|config|database|resources|routes|tests|vendor|storage|certs)(/|$) - [F,L]
+    # Any path segment starting with a dot: .git (the whole repo is otherwise
+    # clonable over HTTP), .env, .user.ini, .gitignore. The <FilesMatch "^\."> below
+    # only inspects the filename, so it does NOT cover /.git/config and friends.
+    RewriteRule (^|/)\. - [F,L]
     RewriteRule ^(composer\.(json|lock)|package(-lock)?\.json|artisan|phpunit\.xml|vite\.config\.js|README\.md)$ - [F,L]
 
     # Redirect Trailing Slashes If Not A Folder...

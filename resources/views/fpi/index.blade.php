@@ -156,10 +156,6 @@
 @endpush
 
 @section('content')
-    @if (session('status'))
-        <div class="flash-success">{{ session('status') }}</div>
-    @endif
-
     <div class="fpi-form-error-banner" id="fpiErrorBanner" style="display:none">
         Please correct the highlighted fields in this section.
     </div>
@@ -177,6 +173,8 @@
         </select>
         <button type="button" class="btn btn-ghost btn-sm" style="padding:5px 12px;font-size:12.5px" onclick="var v=document.getElementById('appSelect').value; if(v) window.location.href=v;">Open</button>
         <button type="submit" form="fpiNewForm" class="btn btn-primary btn-sm" style="padding:5px 12px;font-size:12.5px">＋ New Application</button>
+        {{-- Same action as the one in the footer bar; margin-left:auto pins it to the top right. --}}
+        <button type="button" class="btn btn-outline btn-sm js-fpi-autofill" style="margin-left:auto;padding:5px 12px;font-size:12.5px">⚡ Auto-fill &amp; Save All</button>
     </div>
 
     @if ($isSubmitted)
@@ -436,7 +434,7 @@
                 <div class="fpi-card-heading">Step 5: Financial & Tax Information</div>
                 <div class="fpi-grid">
                     <div class="fpi-form-group">
-                        <label class="fpi-label">Gross Annual Income</label>
+                        <label class="fpi-label">Gross Annual Income <span class="fpi-req">*</span></label>
                         <select class="fpi-select" name="incomeRange">
                             <option value="" @selected($form['incomeRange'] === '')>Select</option>
                             @foreach (['UNDER_50K' => 'Under $50,000', '50K_250K' => '$50,000 - $250,000', '250K_1M' => '$250,000 - $1,000,000', 'ABOVE_1M' => 'Above $1,000,000'] as $v => $l)
@@ -444,9 +442,9 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="fpi-form-group"><label class="fpi-label">Net Worth in USD</label><input class="fpi-input" type="number" name="netWorth" value="{{ $form['netWorth'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Net Worth in USD <span class="fpi-req">*</span></label><input class="fpi-input" type="number" name="netWorth" value="{{ $form['netWorth'] }}"></div>
                     <div class="fpi-form-group"><label class="fpi-label">Net Worth Date</label><input class="fpi-input" type="date" name="netWorthDate" value="{{ $form['netWorthDate'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">Tax Residency Country</label>
+                    <div class="fpi-form-group"><label class="fpi-label">Tax Residency Country <span class="fpi-req">*</span></label>
                         <select class="fpi-select" name="taxCountry">
                             <option value="" @selected($form['taxCountry'] === '')>Select</option>
                             @foreach ($countries as $c)
@@ -454,7 +452,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="fpi-form-group"><label class="fpi-label">Tax Identification Number (TIN)</label><input class="fpi-input" type="text" name="tin" value="{{ $form['tin'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Tax Identification Number (TIN) <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="tin" value="{{ $form['tin'] }}"></div>
                 </div>
             </div>
 
@@ -499,8 +497,8 @@
                 </div>
                 <div class="fpi-sub-heading">Bank Account Details</div>
                 <div class="fpi-grid" style="margin-bottom:16px">
-                    <div class="fpi-form-group"><label class="fpi-label">Bank Name</label><input class="fpi-input" type="text" name="bankName" value="{{ $form['bankName'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">Account Number</label><input class="fpi-input" type="text" name="bankAccount" value="{{ $form['bankAccount'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Bank Name <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="bankName" value="{{ $form['bankName'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Account Number <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="bankAccount" value="{{ $form['bankAccount'] }}"></div>
                     <div class="fpi-form-group">
                         <label class="fpi-label">Account Type <span class="fpi-req">*</span></label>
                         <select class="fpi-select" name="bankAccountType">
@@ -524,8 +522,8 @@
             <div class="fpi-step-panel" data-panel="additional">
                 <div class="fpi-card-heading">Step 8: Additional Information</div>
                 <div class="fpi-grid">
-                    <div class="fpi-form-group"><label class="fpi-label">Primary Contact Person</label><input class="fpi-input" type="text" name="primaryContactName" value="{{ $form['primaryContactName'] }}"></div>
-                    <div class="fpi-form-group"><label class="fpi-label">Designation</label><input class="fpi-input" type="text" name="primaryContactDesignation" value="{{ $form['primaryContactDesignation'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Primary Contact Person <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="primaryContactName" value="{{ $form['primaryContactName'] }}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Designation <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="primaryContactDesignation" value="{{ $form['primaryContactDesignation'] }}"></div>
                     <div class="fpi-form-group" style="grid-column: span 2"><label class="fpi-label">Investment Manager Name</label><input class="fpi-input" type="text" name="investmentManagerName" value="{{ $form['investmentManagerName'] }}"></div>
                     <div class="fpi-form-group" style="grid-column: span 2"><label class="fpi-label">Place of Business in India (if any)</label><input class="fpi-input" type="text" name="indiaPlaceOfBusiness" value="{{ $form['indiaPlaceOfBusiness'] }}"></div>
                 </div>
@@ -587,7 +585,7 @@
             <div class="fpi-actions">
                 <div style="display:flex;gap:6px">
                     <button type="button" class="btn btn-ghost btn-sm" id="fpiPrev" style="padding:5px 12px;font-size:12.5px;display:none">Previous</button>
-                    <button type="button" class="btn btn-outline btn-sm" id="fpiAutofillSection" style="padding:5px 12px;font-size:12.5px">⚡ Auto-fill &amp; Save All</button>
+                    <button type="button" class="btn btn-outline btn-sm js-fpi-autofill" id="fpiAutofillSection" style="padding:5px 12px;font-size:12.5px">⚡ Auto-fill &amp; Save All</button>
                 </div>
                 <div style="display:flex;gap:6px">
                     <a href="{{ route('fpi.preview') }}" target="_blank" rel="noopener" class="btn btn-sm fpi-print-btn" id="fpiPrintPreview" style="padding:5px 14px;font-size:12.5px;display:none;text-decoration:none">🖨 Print / Preview</a>
@@ -654,7 +652,7 @@
             // Save Section / Auto-fill hidden after the application is submitted (read-only).
             if (IS_SUBMITTED) {
                 document.getElementById('fpiSaveTab').style.display = 'none';
-                document.getElementById('fpiAutofillSection').style.display = 'none';
+                document.querySelectorAll('.js-fpi-autofill').forEach(b => { b.style.display = 'none'; });
             }
 
             const printBtn = document.getElementById('fpiPrintPreview');
@@ -750,6 +748,13 @@
             commAddressLine1: 'Address Line 1', commAddressLine2: 'Address Line 2', commAddressLine3: 'Address Line 3',
             commCity: 'City', commState: 'State', commCountry: 'Country', commZip: 'PIN / ZIP',
             mobileNumber: 'Mobile Number', email: 'Email',
+            // Financial tab — everything except Net Worth Date
+            incomeRange: 'Gross Annual Income', netWorth: 'Net Worth in USD',
+            taxCountry: 'Tax Residency Country', tin: 'Tax Identification Number (TIN)',
+            // PAN, Bank & Depository tab
+            bankName: 'Bank Name', bankAccount: 'Account Number',
+            // Additional Info tab
+            primaryContactName: 'Primary Contact Person', primaryContactDesignation: 'Designation',
         };
         const PATTERNS = {
             pan: { re: /^[A-Za-z]{5}[0-9]{4}[A-Za-z]$/, msg: 'PAN must be 5 letters, 4 digits, then 1 letter (e.g. AAACG1234F).' },
@@ -988,7 +993,10 @@
             const res = await fetch(@json(route('fpi.store')), {
                 method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: fd,
             });
-            return res.ok;
+            // store() replies with {ok, section, next, message} — keep the message
+            // so each tab can be confirmed, and the errors so a failure is specific.
+            const data = await res.json().catch(() => ({}));
+            return { ok: res.ok, message: data.message || '', errors: data.errors || null };
         }
 
         async function autofillFlow() {
@@ -997,15 +1005,25 @@
                 current = order.indexOf(id); render();
                 if (id === 'ubo_tool') { if (window.__uboFill) window.__uboFill(); }
                 else { const d = SAMPLE[id]; if (d) Object.entries(d).forEach(([k, v]) => setField(k, v)); }
-                Swal.update({ title: `Filling "${steps[current].tab}"…`, html: 'Saving to database…' });
+                Swal.update({ icon: 'info', title: `Filling "${steps[current].tab}"…`, html: 'Saving to database…' });
+                Swal.showLoading();
                 await sleep(550);                       // visible fill
-                const ok = await saveSectionAjax(id);
-                if (!ok) { Swal.fire({ icon: 'error', title: 'Auto-fill stopped', text: `Could not save the "${steps[current].tab}" section.`, confirmButtonColor: '#3e6f7c' }); return; }
+                const saved = await saveSectionAjax(id);
+                if (!saved.ok) {
+                    const detail = saved.errors ? Object.values(saved.errors).flat()[0] : saved.message;
+                    Swal.fire({ icon: 'error', title: 'Auto-fill stopped', text: detail || `Could not save the "${steps[current].tab}" section.`, confirmButtonColor: '#3e6f7c' });
+                    return;
+                }
                 savedSteps.add(id); render();
-                await sleep(350);                       // let the ✓ show
+                // Per-tab confirmation. It auto-advances rather than waiting for a
+                // click, so the run stays hands-free.
+                Swal.hideLoading();
+                Swal.update({ icon: 'success', title: 'Saved', html: saved.message || `${steps[current].tab} saved successfully.` });
+                await sleep(1200);                      // let the message be read
             }
             // Final submission
-            Swal.update({ title: 'Submitting application…', html: '' });
+            Swal.update({ icon: 'info', title: 'Submitting application…', html: '' });
+            Swal.showLoading();
             const sres = await fetch(@json(route('fpi.submit')), {
                 method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                 body: (() => { const f = new FormData(); f.append('_token', CSRF); return f; })(),
@@ -1018,17 +1036,28 @@
                 .then(() => window.location.reload());
         }
 
-        document.getElementById('fpiAutofillSection').addEventListener('click', () => {
+        document.querySelectorAll('.js-fpi-autofill').forEach(btn => btn.addEventListener('click', () => {
             Swal.fire({
                 icon: 'question', title: 'Auto-fill & submit?',
                 text: 'This fills each tab, saves it, then submits the application — step by step.',
                 showCancelButton: true, confirmButtonText: 'Yes, run it', confirmButtonColor: '#3e6f7c', cancelButtonText: 'Cancel',
             }).then(r => {
                 if (!r.isConfirmed) return;
-                Swal.fire({ title: 'Starting…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                // Seed the icon here so Swal.update() can swap info -> success per tab.
+                Swal.fire({ icon: 'info', title: 'Starting…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 autofillFlow();
             });
-        });
+        }));
+
+        // ── Confirm a successful tab save (saveTab() posts the form and the
+        //    server redirects back with the "<Section> saved successfully." flash) ──
+        const flashStatus = @json(session('status'));
+        if (flashStatus) {
+            Swal.fire({
+                icon: 'success', title: 'Success', text: flashStatus,
+                confirmButtonColor: '#27ae60', timer: 2600, timerProgressBar: true,
+            });
+        }
 
         // ── Render server-side validation errors returned after a failed submit ──
         const serverErrors = @json($errors->messages());

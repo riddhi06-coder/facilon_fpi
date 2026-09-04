@@ -429,11 +429,12 @@ class FpiController extends Controller
                 'uboAddress'     => ['nullable', 'required_if:hasUbos,YES', 'string', 'max:1000'],
             ],
             'financial' => [
-                'incomeRange'  => ['nullable', Rule::in(['UNDER_50K', '50K_250K', '250K_1M', 'ABOVE_1M'])],
-                'netWorth'     => ['nullable', 'numeric', 'min:0'],
+                // Everything on this tab is mandatory except the Net Worth Date.
+                'incomeRange'  => ['required', Rule::in(['UNDER_50K', '50K_250K', '250K_1M', 'ABOVE_1M'])],
+                'netWorth'     => ['required', 'numeric', 'min:0'],
                 'netWorthDate' => ['nullable', 'date'],
-                'taxCountry'   => ['nullable', 'string', 'max:100'],
-                'tin'          => ['nullable', 'string', 'max:50'],
+                'taxCountry'   => ['required', 'string', 'max:100'],
+                'tin'          => ['required', 'string', 'max:50'],
             ],
             'category' => [
                 'fpiCategory'           => ['required', Rule::in(['CAT_I', 'CAT_II'])],
@@ -444,8 +445,8 @@ class FpiController extends Controller
             ],
             'depository' => [
                 'pan'             => ['required', 'string', 'size:10', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]$/'],
-                'bankName'        => ['nullable', 'string', 'max:150'],
-                'bankAccount'     => ['nullable', 'string', 'max:30'],
+                'bankName'        => ['required', 'string', 'max:150'],
+                'bankAccount'     => ['required', 'string', 'max:30'],
                 'bankAccountType' => ['required', Rule::in(['NRE', 'NRO', 'ESCROW'])],
                 'bankSwift'       => ['nullable', 'string', 'max:20'],
                 'custodianName'   => ['nullable', 'string', 'max:200'],
@@ -453,8 +454,8 @@ class FpiController extends Controller
                 'clientId'        => ['nullable', 'string', 'max:20'],
             ],
             'additional' => [
-                'primaryContactName'        => ['nullable', 'string', 'max:150'],
-                'primaryContactDesignation' => ['nullable', 'string', 'max:100'],
+                'primaryContactName'        => ['required', 'string', 'max:150'],
+                'primaryContactDesignation' => ['required', 'string', 'max:100'],
                 'investmentManagerName'     => ['nullable', 'string', 'max:150'],
                 'indiaPlaceOfBusiness'      => ['nullable', 'string', 'max:200'],
             ],
