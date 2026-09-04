@@ -9,7 +9,7 @@ Route::get('/', function () {
 });
 
 // FPI Registration
-Route::get('/fpi', [FpiController::class, 'index'])->name('fpi.index');
+Route::get('/', [FpiController::class, 'index'])->name('fpi.index');
 Route::post('/fpi', [FpiController::class, 'store'])->name('fpi.store');
 Route::post('/fpi/submit', [FpiController::class, 'submit'])->name('fpi.submit');
 Route::post('/fpi/new', [FpiController::class, 'newApplication'])->name('fpi.new');

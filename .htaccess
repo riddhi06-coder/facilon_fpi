@@ -1,0 +1,40 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews
+    </IfModule>
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # This app serves from its own root (not public/), so without these rules
+    # the whole source tree is web-readable. Deny application internals.
+    RewriteRule ^(app|bootstrap|config|database|resources|routes|tests|vendor|storage|certs)(/|$) - [F,L]
+    RewriteRule ^(composer\.(json|lock)|package(-lock)?\.json|artisan|phpunit\.xml|vite\.config\.js|README\.md)$ - [F,L]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Handle Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+
+
+
+    # This app is Laravel 12 (PHP >= 8.2); the server-wide mod_php is 8.0,
+    # so hand .php off to the PHP 8.4 FPM pool. Scoped to this directory only.
+    <FilesMatch "\.php$">
+        SetHandler "proxy:unix:/run/php/php8.4-fpm.sock|fcgi://localhost"
+    </FilesMatch>
+
+    # Block access to .env and other sensitive files
+    <FilesMatch "^\.">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</IfModule>
