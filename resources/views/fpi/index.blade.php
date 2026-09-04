@@ -999,13 +999,38 @@
             return { ok: res.ok, message: data.message || '', errors: data.errors || null };
         }
 
+        // ── Stop control for the auto-fill run ──
+        // The button lives inside the Swal body (not its actions area) because
+        // Swal.showLoading() takes that area over. The click is delegated from
+        // document so it survives every Swal.update() re-render of the body.
+        let autofillStop = false;
+        const STOP_BTN = '<button type="button" id="fpiAutofillStop" style="margin-top:14px;padding:6px 16px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:5px;background:#fff;border:1px solid #c0392b;color:#c0392b">■ Stop after this tab</button>';
+        document.addEventListener('click', (e) => {
+            const btn = e.target && e.target.closest ? e.target.closest('#fpiAutofillStop') : null;
+            if (!btn || autofillStop) return;
+            autofillStop = true;
+            btn.disabled = true;
+            btn.style.opacity = '.6';
+            btn.style.cursor = 'default';
+            btn.textContent = 'Stopping after this tab…';
+        });
+
+        // Halt cleanly: whatever was saved stays saved, so reload to show the ticks.
+        function haltAutofill(tabName) {
+            Swal.fire({
+                icon: 'info', title: 'Auto-fill stopped',
+                html: `Stopped after <strong>${tabName}</strong>. Everything saved up to this point has been kept — you can carry on manually from the next tab.`,
+                confirmButtonColor: '#3e6f7c',
+            }).then(() => window.location.reload());
+        }
+
         async function autofillFlow() {
             const order = steps.map(s => s.id);
             for (const id of order) {
                 current = order.indexOf(id); render();
                 if (id === 'ubo_tool') { if (window.__uboFill) window.__uboFill(); }
                 else { const d = SAMPLE[id]; if (d) Object.entries(d).forEach(([k, v]) => setField(k, v)); }
-                Swal.update({ icon: 'info', title: `Filling "${steps[current].tab}"…`, html: 'Saving to database…' });
+                Swal.update({ icon: 'info', title: `Filling "${steps[current].tab}"…`, html: 'Saving to database…' + STOP_BTN });
                 Swal.showLoading();
                 await sleep(550);                       // visible fill
                 const saved = await saveSectionAjax(id);
@@ -1018,8 +1043,11 @@
                 // Per-tab confirmation. It auto-advances rather than waiting for a
                 // click, so the run stays hands-free.
                 Swal.hideLoading();
-                Swal.update({ icon: 'success', title: 'Saved', html: saved.message || `${steps[current].tab} saved successfully.` });
+                Swal.update({ icon: 'success', title: 'Saved', html: (saved.message || `${steps[current].tab} saved successfully.`) + STOP_BTN });
                 await sleep(1200);                      // let the message be read
+
+                // Stop here if asked: this tab is saved, nothing further runs.
+                if (autofillStop) { haltAutofill(steps[current].tab); return; }
             }
             // Final submission
             Swal.update({ icon: 'info', title: 'Submitting application…', html: '' });
@@ -1044,7 +1072,8 @@
             }).then(r => {
                 if (!r.isConfirmed) return;
                 // Seed the icon here so Swal.update() can swap info -> success per tab.
-                Swal.fire({ icon: 'info', title: 'Starting…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                autofillStop = false;
+                Swal.fire({ icon: 'info', title: 'Starting…', html: STOP_BTN, allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 autofillFlow();
             });
         }));
