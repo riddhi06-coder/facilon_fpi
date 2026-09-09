@@ -230,6 +230,16 @@
                         <input class="fpi-input" type="text" name="entityName" value="{{ $form['entityName'] }}">
                     </div>
                     <div class="fpi-form-group">
+                        <label class="fpi-label">Applicant Type <span class="fpi-req">*</span></label>
+                        <select class="fpi-select" name="applicantType" id="applicantType">
+                            <option value="" @selected($form['applicantType'] === '')>Select applicant type</option>
+                            <option value="Partnership" @selected($form['applicantType'] === 'Partnership')>Partnership</option>
+                            <option value="Company" @selected($form['applicantType'] === 'Company')>Company</option>
+                            <option value="Trust" @selected($form['applicantType'] === 'Trust')>Trust</option>
+                            <option value="Unincorporated Association / Body of Individuals" @selected($form['applicantType'] === 'Unincorporated Association / Body of Individuals')>Unincorporated Association / BOI</option>
+                        </select>
+                    </div>
+                    <div class="fpi-form-group">
                         <label class="fpi-label">Ever known by another name? <span class="fpi-req">*</span></label>
                         <select class="fpi-select" name="knownByAnotherName" id="knownByAnotherName">
                             <option value="" @selected($form['knownByAnotherName'] === '')>Select</option>
@@ -341,26 +351,13 @@
                 <div class="fpi-card-heading">Step 3: UBO Determination Tool</div>
 
                 <div class="ubo-card">
-                    <div class="ubo-card-title">Step 1: What type of applicant is this?</div>
-                    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
-                        <select class="ubo-select" id="applicantType" style="width:280px">
-                            <option value="">Select applicant type</option>
-                            <option value="Partnership">Partnership</option>
-                            <option value="Company">Company</option>
-                            <option value="Trust">Trust</option>
-                            <option value="Unincorporated Association / Body of Individuals">Unincorporated Association / BOI</option>
-                        </select>
-                        <button type="button" class="ubo-btn ubo-btn-primary" id="resetFlow">Start / Reset Flow</button>
-                    </div>
-                    <div style="font-size:11px;color:var(--gray500);font-style:italic;background:#f8f9fa;padding:8px 12px;border-radius:4px;border-left:3px solid var(--primary-mid)">
-                        SMO should be used only if no natural person is identified through ownership threshold or control.
-                    </div>
-                </div>
-
-                <div class="ubo-card">
-                    <div class="ubo-card-title" style="display:flex;justify-content:space-between;align-items:center">
+                    <div class="ubo-card-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
                         <span>Define Shareholding / Ownership Hierarchy</span>
                         <span style="font-size:10.5px;color:#0f766e;background:#ccfbf1;padding:2px 8px;border-radius:10px;font-weight:600">Threshold: 10% (SEBI FPI Regulation)</span>
+                    </div>
+                    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+                        <button type="button" class="ubo-btn ubo-btn-primary" id="resetFlow">Start / Reset Flow</button>
+                        <span style="font-size:11px;color:var(--gray500);font-style:italic">Applicant Type &amp; Entity Name come from the Applicant Profile tab. SMO applies only if no natural person meets the threshold.</span>
                     </div>
                     <div id="hierarchy" style="display:flex;flex-direction:column;gap:20px"></div>
                 </div>
@@ -737,7 +734,7 @@
         const errorBanner = document.getElementById('fpiErrorBanner');
 
         const REQUIRED = {
-            nameTitle: 'Title', entityName: 'Entity Name', knownByAnotherName: 'This field',
+            nameTitle: 'Title', entityName: 'Entity Name', applicantType: 'Applicant Type', knownByAnotherName: 'This field',
             placeOfIncorporation: 'Place of Incorporation', countryOfIncorporation: 'Country of Incorporation',
             hasUbos: 'This field', fpiCategory: 'FPI Category', regulatoryStatus: 'Regulatory Status',
             pan: 'Indian PAN', bankAccountType: 'Account Type', signatureName: 'Authorized Signatory Name',
@@ -901,13 +898,7 @@
                 if (firstEl && firstEl.focus) firstEl.focus();
                 return;
             }
-            if (step.id === 'ubo_tool') {
-                if (window.__uboValid && !window.__uboValid()) {
-                    const at = document.getElementById('applicantType');
-                    at.classList.add('is-invalid'); at.focus();
-                    Swal.fire({ icon: 'error', title: 'Applicant type required', text: 'Please select the applicant type before saving the UBO Determination.', confirmButtonColor: '#3e6f7c' });
-                    return;
-                }
+            if (step.id === 'ubo_tool' && window.__uboSerialize) {
                 document.getElementById('uboStructureField').value = window.__uboSerialize();
             }
             errorBanner.style.display = 'none';
@@ -968,7 +959,7 @@
             el.dispatchEvent(new Event('change', { bubbles: true }));
         }
         const SAMPLE = {
-            applicant: { nameTitle: 'M/S', entityName: 'GLOBAL ALPHAS FPI FUND', knownByAnotherName: 'NO', dateOfIncorporation: '2015-06-12', dateOfCommencementOfBusiness: '2015-07-01', placeOfIncorporation: 'NEW YORK', countryOfIncorporation: '2', lei: '549300INF823N7179062', leiExpiryDate: '2027-06-12' },
+            applicant: { nameTitle: 'M/S', entityName: 'GLOBAL ALPHAS FPI FUND', applicantType: 'Company', knownByAnotherName: 'NO', dateOfIncorporation: '2015-06-12', dateOfCommencementOfBusiness: '2015-07-01', placeOfIncorporation: 'NEW YORK', countryOfIncorporation: '2', lei: '549300INF823N7179062', leiExpiryDate: '2027-06-12' },
             contact: { regAddressLine1: '120 BROADWAY', regAddressLine2: 'SUITE 3000', regAddressLine3: 'FINANCIAL DISTRICT', regCity: 'NEW YORK', regState: 'NEW YORK', regCountry: '2', regZip: '10271', sameAddress: true, telNumber: '+1-212-555-0199', mobileNumber: '+1-917-555-0144', email: 'compliance@globalalphasfund.com' },
             ubo: { hasUbos: 'YES', uboName: 'JOHNATHAN DAVIS', uboDob: '1970-04-18', uboNationality: '2', uboPassport: 'USA839103982', uboOwnership: '35', uboAddress: '55 EAST 72ND ST, NEW YORK, NY 10021' },
             financial: { incomeRange: 'ABOVE_1M', netWorth: '45000000', netWorthDate: '2026-03-31', taxCountry: '2', tin: '13-3918239' },

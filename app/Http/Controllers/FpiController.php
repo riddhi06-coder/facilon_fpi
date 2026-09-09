@@ -22,6 +22,7 @@ class FpiController extends Controller
         return [
             'nameTitle' => '',
             'entityName' => '',
+            'applicantType' => '',
             'knownByAnotherName' => '',
             'otherTitle' => '',
             'otherEntityName' => '',
@@ -260,6 +261,7 @@ class FpiController extends Controller
         if ($corp) {
             $out['nameTitle'] = $this->codeToTitle[$corp->name_title_code] ?? '';
             $out['entityName'] = $corp->company_name;
+            $out['applicantType'] = $corp->applicant_legal_type ?? '';
             $out['dateOfIncorporation'] = $corp->date_of_incorporation;
             $out['dateOfCommencementOfBusiness'] = $corp->date_commence_business;
             $out['placeOfIncorporation'] = $corp->place_of_incorporation;
@@ -386,6 +388,7 @@ class FpiController extends Controller
             'applicant' => [
                 'nameTitle'                     => ['required', Rule::in(['M/S', 'MR', 'MRS', 'MS'])],
                 'entityName'                    => ['required', 'string', 'max:200'],
+                'applicantType'                 => ['required', Rule::in(['Partnership', 'Company', 'Trust', 'Unincorporated Association / Body of Individuals'])],
                 'knownByAnotherName'            => ['required', Rule::in(['YES', 'NO'])],
                 'otherTitle'                    => ['nullable', Rule::in(['M/S', 'MR', 'MRS', ''])],
                 'otherEntityName'               => ['nullable', 'required_if:knownByAnotherName,YES', 'string', 'max:200'],
@@ -647,6 +650,7 @@ class FpiController extends Controller
             [
                 'name_title_code'          => $this->titleToCode[$request->input('nameTitle')] ?? null,
                 'company_name'             => $request->input('entityName'),
+                'applicant_legal_type'     => $request->input('applicantType') ?: null,
                 'date_of_incorporation'    => $request->input('dateOfIncorporation'),
                 'date_commence_business'   => $request->input('dateOfCommencementOfBusiness') ?: null,
                 'place_of_incorporation'   => $request->input('placeOfIncorporation'),
