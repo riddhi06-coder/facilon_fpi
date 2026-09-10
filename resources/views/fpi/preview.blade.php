@@ -101,7 +101,8 @@
         <div class="section-body">
             <div class="grid grid-3">
                 <div class="f"><span class="f-label">Title</span><span class="f-value">{{ $val($titleMap[$corp->name_title_code ?? ''] ?? null) }}</span></div>
-                <div class="f" style="grid-column: span 2"><span class="f-label">Entity Name</span><span class="f-value">{{ $val($corp->company_name ?? null) }}</span></div>
+                <div class="f"><span class="f-label">Entity Name</span><span class="f-value">{{ $val($corp->company_name ?? null) }}</span></div>
+                <div class="f"><span class="f-label">Applicant Type</span><span class="f-value">{{ $val($corp->applicant_legal_type ?? null) }}</span></div>
                 <div class="f"><span class="f-label">Entity Type</span><span class="f-value">{{ $val($app->entity_type) }}</span></div>
                 <div class="f"><span class="f-label">Date of Incorporation</span><span class="f-value">{{ $val($corp->date_of_incorporation ?? null) }}</span></div>
                 <div class="f"><span class="f-label">Commencement of Business</span><span class="f-value">{{ $val($corp->date_commence_business ?? null) }}</span></div>
@@ -142,13 +143,14 @@
                 </tbody></table>
             @else <div class="empty">No address on record.</div> @endif
 
-            @if ($contacts->count())
+            @php $resContact = $contacts->firstWhere('contact_type', 'Residence'); @endphp
+            @if ($resContact)
                 <div class="subhead">Contact Details</div>
-                <table class="tbl"><thead><tr><th>Type</th><th>Officer</th><th>Telephone</th><th>Mobile</th><th>Email</th></tr></thead><tbody>
-                    @foreach ($contacts as $c)
-                        <tr><td>{{ $c->contact_type }}</td><td>{{ $val($c->officer_name) }}</td><td>{{ $val($c->telephone_number) }}</td><td>{{ $val($c->mobile_number) }}</td><td>{{ $val($c->email_id) }}</td></tr>
-                    @endforeach
-                </tbody></table>
+                <div class="grid grid-3">
+                    <div class="f"><span class="f-label">Telephone</span><span class="f-value">{{ $val($resContact->telephone_number) }}</span></div>
+                    <div class="f"><span class="f-label">Mobile</span><span class="f-value">{{ $val($resContact->mobile_number) }}</span></div>
+                    <div class="f"><span class="f-label">Email</span><span class="f-value">{{ $val($resContact->email_id) }}</span></div>
+                </div>
             @endif
         </div>
     </div>

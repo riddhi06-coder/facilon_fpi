@@ -407,21 +407,17 @@
                     </div>
                 </div>
                 <div id="uboBlock" style="{{ $form['hasUbos'] === 'YES' ? '' : 'display:none' }}">
-                    <div class="fpi-sub-heading">Ultimate Beneficial Owner 1</div>
-                    <div class="fpi-grid">
-                        <div class="fpi-form-group"><label class="fpi-label">Full Name <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="uboName" value="{{ $form['uboName'] }}"></div>
-                        <div class="fpi-form-group"><label class="fpi-label">Date of Birth <span class="fpi-req">*</span></label><input class="fpi-input" type="date" name="uboDob" max="{{ date('Y-m-d') }}" value="{{ $form['uboDob'] }}"></div>
-                        <div class="fpi-form-group"><label class="fpi-label">Nationality <span class="fpi-req">*</span></label>
-                            <select class="fpi-select" name="uboNationality">
-                                <option value="" @selected($form['uboNationality'] === '')>Select</option>
-                                @foreach ($countries as $c)
-                                    <option value="{{ $c->country_id }}" @selected((string) $form['uboNationality'] === (string) $c->country_id)>{{ $c->label_en }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="fpi-form-group"><label class="fpi-label">Passport / National ID <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="uboPassport" value="{{ $form['uboPassport'] }}"></div>
-                        <div class="fpi-form-group"><label class="fpi-label">Ownership % <span class="fpi-req">*</span></label><input class="fpi-input" type="number" name="uboOwnership" min="0" max="100" step="0.01" value="{{ $form['uboOwnership'] }}"></div>
-                        <div class="fpi-form-group" style="grid-column: span 3"><label class="fpi-label">Residential Address <span class="fpi-req">*</span></label><input class="fpi-input" type="text" name="uboAddress" value="{{ $form['uboAddress'] }}"></div>
+                    <div class="fpi-sub-heading" style="display:flex;justify-content:space-between;align-items:center">
+                        <span>Ultimate Beneficial Owners</span>
+                        <button type="button" class="btn btn-ghost btn-sm" id="uboAddRow" style="font-size:12px">+ Add UBO</button>
+                    </div>
+                    <div style="font-size:11px;color:var(--gray500);margin-bottom:10px">
+                        Names are carried from the <strong>UBO Determination</strong> tab. Complete the remaining details for each — all fields are required.
+                    </div>
+                    <input type="hidden" name="uboRowsJson" id="uboRowsJsonField">
+                    <div id="uboRowsContainer"></div>
+                    <div id="uboEmptyNote" class="empty" style="display:none;font-size:11.5px;color:var(--gray500);font-style:italic;border:1px dashed var(--gray300);padding:12px;border-radius:6px">
+                        No UBOs yet. Add natural persons in the UBO Determination tab, or click “+ Add UBO”.
                     </div>
                 </div>
             </div>
@@ -632,6 +628,9 @@
                 el.classList.toggle('active', el.getAttribute('data-panel') === activeId);
             });
 
+            // Entering Beneficial Ownership: pull the UBO names from the tool.
+            if (activeId === 'ubo' && typeof refreshUboSection === 'function') refreshUboSection();
+
             progressBar.style.width = (current / (steps.length - 1)) * 100 + '%';
             prevBtn.style.display = current === 0 ? 'none' : '';
             nextBtn.style.display = current === steps.length - 1 ? 'none' : '';
@@ -679,10 +678,8 @@
             el.addEventListener('click', () => goTo(el.getAttribute('data-step')));
         });
         prevBtn.addEventListener('click', () => { if (current > 0) { current--; render(); } });
-        nextBtn.addEventListener('click', () => {
-            if (!validateStep(steps[current].id)) return;   // block advancing on invalid step
-            if (current < steps.length - 1) { current++; render(); }
-        });
+        // Next = save current tab (AJAX) + advance, so nothing is lost on reload.
+        nextBtn.addEventListener('click', () => saveTab());
 
         // FAQ collapse
         let faqOpen = true;
@@ -701,11 +698,108 @@
         }
         knownSel.addEventListener('change', toggleOtherName);
 
-        // hasUbos toggle
+        // ── Beneficial Ownership rows (seeded from the UBO Determination tool) ──
         const hasUbos = document.getElementById('hasUbos');
-        hasUbos.addEventListener('change', () => {
+        const uboRowsContainer = document.getElementById('uboRowsContainer');
+        const uboRowsJsonField = document.getElementById('uboRowsJsonField');
+        const uboEmptyNote = document.getElementById('uboEmptyNote');
+        const UBO_COUNTRIES = @json($countries->map(fn ($c) => ['id' => (string) $c->country_id, 'label' => $c->label_en])->values());
+        const TODAY = @json(date('Y-m-d'));
+        let uboRows = @json($uboList ?? []);   // [{name,dob,nationality,passport,ownership,address}]
+
+        function countryOptionsHtml(sel) {
+            let h = `<option value="">Select</option>`;
+            UBO_COUNTRIES.forEach(c => { h += `<option value="${c.id}" ${String(sel) === c.id ? 'selected' : ''}>${c.label}</option>`; });
+            return h;
+        }
+        function esc(s) { return String(s ?? '').replace(/"/g, '&quot;'); }
+
+        function renderUboRows() {
+            uboRowsContainer.innerHTML = '';
+            uboRows.forEach((r, i) => {
+                const row = document.createElement('div');
+                row.className = 'fpi-grid ubo-row';
+                row.style.cssText = 'margin-bottom:12px;padding:12px;border:1px solid var(--gray200);border-radius:6px;position:relative';
+                row.innerHTML = `
+                    <div class="fpi-form-group"><label class="fpi-label">Full Name <span class="fpi-req">*</span></label>
+                        <input class="fpi-input ubo-f" data-i="${i}" data-k="name" type="text" value="${esc(r.name)}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Date of Birth <span class="fpi-req">*</span></label>
+                        <input class="fpi-input ubo-f" data-i="${i}" data-k="dob" type="date" max="${TODAY}" value="${esc(r.dob)}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Nationality <span class="fpi-req">*</span></label>
+                        <select class="fpi-select ubo-f" data-i="${i}" data-k="nationality">${countryOptionsHtml(r.nationality)}</select></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Passport / National ID <span class="fpi-req">*</span></label>
+                        <input class="fpi-input ubo-f" data-i="${i}" data-k="passport" type="text" value="${esc(r.passport)}"></div>
+                    <div class="fpi-form-group"><label class="fpi-label">Ownership % <span class="fpi-req">*</span></label>
+                        <input class="fpi-input ubo-f" data-i="${i}" data-k="ownership" type="number" min="0" max="100" step="0.01" value="${esc(r.ownership)}"></div>
+                    <div class="fpi-form-group" style="grid-column: span 2"><label class="fpi-label">Residential Address <span class="fpi-req">*</span></label>
+                        <input class="fpi-input ubo-f" data-i="${i}" data-k="address" type="text" value="${esc(r.address)}"></div>
+                    <div class="fpi-form-group" style="justify-content:flex-end">
+                        <button type="button" class="btn btn-ghost btn-sm ubo-remove" data-i="${i}" style="color:var(--danger);border-color:#f1aaa5">Remove</button></div>`;
+                uboRowsContainer.appendChild(row);
+            });
+            uboRowsContainer.querySelectorAll('.ubo-f').forEach(el => {
+                el.addEventListener('input', e => { uboRows[+e.target.dataset.i][e.target.dataset.k] = e.target.value; e.target.classList.remove('is-invalid'); });
+                el.addEventListener('change', e => { uboRows[+e.target.dataset.i][e.target.dataset.k] = e.target.value; });
+            });
+            uboRowsContainer.querySelectorAll('.ubo-remove').forEach(b => {
+                b.addEventListener('click', e => { uboRows.splice(+e.target.dataset.i, 1); renderUboRows(); });
+            });
+            uboEmptyNote.style.display = uboRows.length ? 'none' : '';
+        }
+
+        function seedUboRows() {
+            const persons = window.__uboPersons ? window.__uboPersons() : [];
+            if (!persons.length) return;
+            const byName = {}; uboRows.forEach(r => byName[(r.name || '').toLowerCase()] = r);
+            const merged = persons.map(p => byName[p.name.toLowerCase()] || { name: p.name, dob: '', nationality: '', passport: '', ownership: '', address: '' });
+            const toolNames = new Set(persons.map(p => p.name.toLowerCase()));
+            uboRows.forEach(r => { if (!toolNames.has((r.name || '').toLowerCase())) merged.push(r); }); // keep manual rows
+            uboRows = merged;
+        }
+
+        function refreshUboSection() {
             document.getElementById('uboBlock').style.display = hasUbos.value === 'YES' ? '' : 'none';
+            if (hasUbos.value === 'YES') { seedUboRows(); renderUboRows(); }
+        }
+        hasUbos.addEventListener('change', refreshUboSection);
+        document.getElementById('uboAddRow').addEventListener('click', () => {
+            uboRows.push({ name: '', dob: '', nationality: '', passport: '', ownership: '', address: '' });
+            renderUboRows();
         });
+
+        // Validate the UBO rows; marks invalid inputs, returns true if all good.
+        function checkUboRows() {
+            if (hasUbos.value !== 'YES') return true;
+            let ok = true;
+            const inputs = uboRowsContainer.querySelectorAll('.ubo-f');
+            if (!uboRows.length) ok = false;
+            inputs.forEach(el => {
+                el.classList.remove('is-invalid');
+                const k = el.dataset.k, v = (el.value || '').trim();
+                let bad = !v;
+                if (!bad && k === 'ownership') { const n = parseFloat(v); bad = isNaN(n) || n < 0 || n > 100; }
+                if (!bad && k === 'dob' && v > TODAY) bad = true;
+                if (bad) { el.classList.add('is-invalid'); ok = false; }
+            });
+            return ok;
+        }
+        function serializeUbo() { uboRowsJsonField.value = JSON.stringify(uboRows); }
+
+        // Auto-fill helper: seed rows from the tool and fill sample details.
+        function fillUboSample() {
+            hasUbos.value = 'YES';
+            document.getElementById('uboBlock').style.display = '';
+            seedUboRows();
+            uboRows = uboRows.map((r, i) => ({
+                name: r.name,
+                dob: r.dob || '1980-01-01',
+                nationality: r.nationality || '2',
+                passport: r.passport || ('IDDOC' + (i + 1)),
+                ownership: r.ownership || '25',
+                address: r.address || '1 Sample Street, City',
+            }));
+            renderUboRows();
+        }
 
         // Same-as-registered address mirroring
         const sameAddress = document.getElementById('sameAddress');
@@ -756,8 +850,15 @@
         const PATTERNS = {
             pan: { re: /^[A-Za-z]{5}[0-9]{4}[A-Za-z]$/, msg: 'PAN must be 5 letters, 4 digits, then 1 letter (e.g. AAACG1234F).' },
             email: { re: /^[^@\s]+@[^@\s]+\.[^@\s]+$/, msg: 'Enter a valid email address.' },
-            lei: { re: /^[A-Za-z0-9]{20}$/, msg: 'LEI must be 20 alphanumeric characters.' },
         };
+        // ISO 7064 MOD 97-10 checksum for LEI (letters A-Z -> 10-35, number mod 97 == 1).
+        function leiChecksumOk(lei) {
+            let d = '';
+            for (const ch of lei) d += /[A-Z]/.test(ch) ? (ch.charCodeAt(0) - 55).toString() : ch;
+            let rem = 0;
+            for (const c of d) rem = (rem * 10 + (+c)) % 97;
+            return rem === 1;
+        }
         const ISD_CODES = @json(array_values($isdCodes));
 
         function fieldEl(name) { return form.querySelector(`[name="${name}"]`); }
@@ -816,19 +917,16 @@
             if (names.includes('otherEntityName') && knownSel.value === 'YES' && !val('otherEntityName')) {
                 errs.push({ name: 'otherEntityName', msg: 'Other Entity Name is required.' });
             }
-            // conditional: UBO block when hasUbos = YES
-            if (hasUbos.value === 'YES') {
-                [['uboName', 'Full Name'], ['uboDob', 'Date of Birth'], ['uboNationality', 'Nationality'],
-                 ['uboPassport', 'Passport / National ID'], ['uboOwnership', 'Ownership %'], ['uboAddress', 'Residential Address']]
-                .forEach(([n, label]) => {
-                    if (names.includes(n) && !val(n)) errs.push({ name: n, msg: `${label} is required.` });
-                });
+            // LEI — full ISO 17442 validation (only when provided; field is optional)
+            if (names.includes('lei') && val('lei')) {
+                const v = val('lei').toUpperCase();
+                let msg = null;
+                if (!/^[A-Z0-9]{18}[0-9]{2}$/.test(v)) msg = 'LEI must be 20 characters: 18 alphanumeric + 2 numeric check digits.';
+                else if (v.substr(4, 2) !== '00') msg = 'LEI is invalid: characters 5–6 must be "00".';
+                else if (!leiChecksumOk(v)) msg = 'LEI checksum is invalid (ISO 17442 mod-97 check).';
+                if (msg) errs.push({ name: 'lei', msg });
             }
-            // ownership % range
-            if (names.includes('uboOwnership') && val('uboOwnership')) {
-                const v = parseFloat(val('uboOwnership'));
-                if (isNaN(v) || v < 0 || v > 100) errs.push({ name: 'uboOwnership', msg: 'Ownership % must be between 0 and 100.' });
-            }
+            // (Beneficial Ownership rows are validated separately via checkUboRows.)
             // net worth >= 0
             if (names.includes('netWorth') && val('netWorth')) {
                 const v = parseFloat(val('netWorth'));
@@ -882,7 +980,12 @@
         function validateStep(stepId) {
             const errs = runRules(fieldsInStep(stepId));
             applyErrors(errs);
-            return errs.length === 0;
+            let ok = errs.length === 0;
+            if (stepId === 'ubo' && !checkUboRows()) {
+                ok = false;
+                document.querySelectorAll('.fpi-tab-btn').forEach(b => { if (b.getAttribute('data-step') === 'ubo') b.classList.add('has-error'); });
+            }
+            return ok;
         }
 
         // ── Tab-wise save: validate ONLY the current section client-side, then
@@ -890,7 +993,7 @@
         //    just that section to its DB table(s) and pre-fills on reload. ──
         const sectionField = document.getElementById('fpiSection');
 
-        function saveTab() {
+        async function saveTab() {
             const step = steps[current];
             if (!validateStep(step.id)) {
                 errorBanner.style.display = '';
@@ -898,16 +1001,25 @@
                 if (firstEl && firstEl.focus) firstEl.focus();
                 return;
             }
-            if (step.id === 'ubo_tool' && window.__uboSerialize) {
-                document.getElementById('uboStructureField').value = window.__uboSerialize();
-            }
             errorBanner.style.display = 'none';
-            sectionField.value = step.id;
-            form.submit();   // programmatic submit bypasses the submit listener below
+            const btn = document.getElementById('fpiSaveTab');
+            btn.disabled = true;
+            // AJAX save — no page reload, so data typed in OTHER tabs is never lost.
+            const saved = await saveSectionAjax(step.id, false);
+            btn.disabled = false;
+            if (!saved.ok) {
+                const detail = saved.errors ? Object.values(saved.errors).flat()[0] : saved.message;
+                Swal.fire({ icon: 'error', title: 'Could not save section', text: detail || 'Please review this section.', confirmButtonColor: '#3e6f7c' });
+                return;
+            }
+            savedSteps.add(step.id);
+            if (current < steps.length - 1) current++;   // advance to the next tab
+            render();
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: saved.message || 'Section saved', showConfirmButton: false, timer: 1600, timerProgressBar: true });
         }
 
         document.getElementById('fpiSaveTab').addEventListener('click', saveTab);
-        // Enter key inside the form triggers a section save, not a raw submit.
+        // Enter key inside the form triggers a section save (AJAX), not a raw submit.
         form.addEventListener('submit', (e) => { e.preventDefault(); saveTab(); });
 
         // ── Final submission: validate EVERY section, then submit ──
@@ -916,19 +1028,17 @@
             steps.forEach(s => { if (s.id !== 'ubo_tool') all = all.concat(runRules(fieldsInStep(s.id))); });
             const badSteps = applyErrors(all);
 
-            let uboBad = false;
-            if (window.__uboValid && !window.__uboValid()) {
-                uboBad = true;
-                const at = document.getElementById('applicantType'); if (at) at.classList.add('is-invalid');
-                document.querySelectorAll('.fpi-tab-btn').forEach(b => { if (b.getAttribute('data-step') === 'ubo_tool') b.classList.add('has-error'); });
+            // Beneficial Ownership rows
+            if (hasUbos.value === 'YES' && !checkUboRows()) {
+                badSteps.add('ubo');
+                document.querySelectorAll('.fpi-tab-btn').forEach(b => { if (b.getAttribute('data-step') === 'ubo') b.classList.add('has-error'); });
             }
 
-            if (all.length || uboBad) {
-                let firstBad = steps.findIndex(s => badSteps.has(s.id));
-                if (uboBad) { const ui = steps.findIndex(s => s.id === 'ubo_tool'); if (firstBad < 0 || ui < firstBad) firstBad = ui; }
+            if (badSteps.size) {
+                const firstBad = steps.findIndex(s => badSteps.has(s.id));
                 if (firstBad >= 0) { current = firstBad; render(); }
                 errorBanner.style.display = '';
-                const firstEl = all.length ? fieldEl(all[0].name) : document.getElementById('applicantType');
+                const firstEl = all.length ? fieldEl(all[0].name) : document.querySelector('.fpi-step-panel[data-panel="ubo"] .is-invalid');
                 if (firstEl && firstEl.focus) firstEl.focus();
                 return false;
             }
@@ -959,7 +1069,7 @@
             el.dispatchEvent(new Event('change', { bubbles: true }));
         }
         const SAMPLE = {
-            applicant: { nameTitle: 'M/S', entityName: 'GLOBAL ALPHAS FPI FUND', applicantType: 'Company', knownByAnotherName: 'NO', dateOfIncorporation: '2015-06-12', dateOfCommencementOfBusiness: '2015-07-01', placeOfIncorporation: 'NEW YORK', countryOfIncorporation: '2', lei: '549300INF823N7179062', leiExpiryDate: '2027-06-12' },
+            applicant: { nameTitle: 'M/S', entityName: 'GLOBAL ALPHAS FPI FUND', applicantType: 'Company', knownByAnotherName: 'NO', dateOfIncorporation: '2015-06-12', dateOfCommencementOfBusiness: '2015-07-01', placeOfIncorporation: 'NEW YORK', countryOfIncorporation: '2', lei: '5493001KJTIIGC8Y1R12', leiExpiryDate: '2027-06-12' },
             contact: { regAddressLine1: '120 BROADWAY', regAddressLine2: 'SUITE 3000', regAddressLine3: 'FINANCIAL DISTRICT', regCity: 'NEW YORK', regState: 'NEW YORK', regCountry: '2', regZip: '10271', sameAddress: true, telNumber: '+1-212-555-0199', mobileNumber: '+1-917-555-0144', email: 'compliance@globalalphasfund.com' },
             ubo: { hasUbos: 'YES', uboName: 'JOHNATHAN DAVIS', uboDob: '1970-04-18', uboNationality: '2', uboPassport: 'USA839103982', uboOwnership: '35', uboAddress: '55 EAST 72ND ST, NEW YORK, NY 10021' },
             financial: { incomeRange: 'ABOVE_1M', netWorth: '45000000', netWorthDate: '2026-03-31', taxCountry: '2', tin: '13-3918239' },
@@ -970,17 +1080,19 @@
         };
         const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-        async function saveSectionAjax(id) {
+        async function saveSectionAjax(id, isAutofill = false) {
             const fd = new FormData();
             fd.append('_token', CSRF);
             fd.append('section', id);
-            fd.append('_autofill', '1');
+            if (isAutofill) fd.append('_autofill', '1');
             fieldsInStep(id).forEach(n => {
                 const el = fieldEl(n);
-                if (!el) return;
-                fd.append(n, el.type === 'checkbox' ? (el.checked ? 'on' : '') : (el.value ?? ''));
+                if (!el || el.disabled) return;
+                if (el.type === 'file') { if (el.files && el.files[0]) fd.append(n, el.files[0]); }
+                else fd.append(n, el.type === 'checkbox' ? (el.checked ? 'on' : '') : (el.value ?? ''));
             });
             if (id === 'ubo_tool' && window.__uboSerialize) fd.append('uboStructure', window.__uboSerialize());
+            if (id === 'ubo') { serializeUbo(); fd.set('uboRowsJson', uboRowsJsonField.value); }
             const res = await fetch(@json(route('fpi.store')), {
                 method: 'POST', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: fd,
             });
@@ -1020,11 +1132,12 @@
             for (const id of order) {
                 current = order.indexOf(id); render();
                 if (id === 'ubo_tool') { if (window.__uboFill) window.__uboFill(); }
+                else if (id === 'ubo') { fillUboSample(); }
                 else { const d = SAMPLE[id]; if (d) Object.entries(d).forEach(([k, v]) => setField(k, v)); }
                 Swal.update({ icon: 'info', title: `Filling "${steps[current].tab}"…`, html: 'Saving to database…' + STOP_BTN });
                 Swal.showLoading();
                 await sleep(550);                       // visible fill
-                const saved = await saveSectionAjax(id);
+                const saved = await saveSectionAjax(id, true);
                 if (!saved.ok) {
                     const detail = saved.errors ? Object.values(saved.errors).flat()[0] : saved.message;
                     Swal.fire({ icon: 'error', title: 'Auto-fill stopped', text: detail || `Could not save the "${steps[current].tab}" section.`, confirmButtonColor: '#3e6f7c' });
@@ -1276,7 +1389,8 @@
             if (mermaidVisible) document.getElementById('mermaidCode').value = generateMermaid();
         }
 
-        function evaluateUbos() {
+        // Aggregate all natural persons in the tree (by name) with their effective %.
+        function computePersons() {
             const results = [];
             const visited = new Set();
             const traverse = (entityId, multiplier, path) => {
@@ -1288,9 +1402,11 @@
                     const eff = (owner.pct / 100) * multiplier;
                     const currentPath = [...path, { entityName: entity.name, pct: owner.pct }];
                     if (owner.type === 'Individual') {
-                        const existing = results.find(r => r.name.toLowerCase() === owner.name.toLowerCase());
+                        const nm = (owner.name || '').trim();
+                        if (!nm) return;
+                        const existing = results.find(r => r.name.toLowerCase() === nm.toLowerCase());
                         if (existing) { existing.effectivePct += eff; existing.paths.push(currentPath); }
-                        else results.push({ name: owner.name, effectivePct: eff, paths: [currentPath] });
+                        else results.push({ name: nm, effectivePct: eff, paths: [currentPath] });
                     } else if (owner.type === 'Entity') {
                         traverse(owner.targetId, eff, currentPath);
                     }
@@ -1298,7 +1414,13 @@
                 visited.delete(entityId);
             };
             traverse('applicant', 100, []);
-            renderEvalTable(results);
+            return results;
+        }
+        // Expose the identified natural persons to the Beneficial Ownership tab.
+        window.__uboPersons = () => computePersons().map(r => ({ name: r.name, pct: Math.round(r.effectivePct * 100) / 100 }));
+
+        function evaluateUbos() {
+            renderEvalTable(computePersons());
         }
 
         function renderEvalTable(results) {

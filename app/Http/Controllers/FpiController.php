@@ -127,7 +127,20 @@ class FpiController extends Controller
             ->get(['applicants.applicant_id', 'applicants.application_status', 'corporate_applicant_details.company_name']);
         $currentApplicantId = $applicantId;
 
-        return view('fpi.index', compact('form', 'countries', 'isdCodes', 'activeSection', 'savedSections', 'isSubmitted', 'applications', 'currentApplicantId'));
+        // Beneficial-ownership rows for the current applicant (drives Tab 4 rows).
+        $uboList = [];
+        if ($applicantId) {
+            $uboList = DB::table('ubo')->where('applicant_id', $applicantId)->orderBy('ubo_id')->get()->map(fn ($u) => [
+                'name'        => $u->full_name,
+                'dob'         => $u->date_of_birth,
+                'nationality' => (string) ($u->nationality_country_id ?? ''),
+                'passport'    => $u->id_document_number,
+                'ownership'   => $u->shareholding_capital_pct !== null ? (string) $u->shareholding_capital_pct : '',
+                'address'     => $u->residential_address,
+            ])->values()->toArray();
+        }
+
+        return view('fpi.index', compact('form', 'countries', 'isdCodes', 'activeSection', 'savedSections', 'isSubmitted', 'applications', 'currentApplicantId', 'uboList'));
     }
 
     /** Start a fresh application (keeps the submitted record; just detaches the session draft). */
@@ -304,13 +317,9 @@ class FpiController extends Controller
             $out['email'] = $resContact->email_id;
         }
 
-        // Tab 4 — Beneficial Ownership
-        $ubo = DB::table('ubo')->where('applicant_id', $applicantId)->first();
-        if ($ubo) {
-            $out['hasUbos'] = 'YES'; $out['uboName'] = $ubo->full_name; $out['uboDob'] = $ubo->date_of_birth;
-            $out['uboNationality'] = (string) $ubo->nationality_country_id;
-            $out['uboPassport'] = $ubo->id_document_number; $out['uboOwnership'] = $ubo->shareholding_capital_pct;
-            $out['uboAddress'] = $ubo->residential_address;
+        // Tab 4 — Beneficial Ownership (rows themselves are passed as $uboList)
+        if (DB::table('ubo')->where('applicant_id', $applicantId)->exists()) {
+            $out['hasUbos'] = 'YES';
         } elseif (DB::table('application_section_progress')->where('applicant_id', $applicantId)->where('section_code', 'ubo')->where('is_complete', 1)->exists()) {
             $out['hasUbos'] = 'NO'; // section saved with "No" -> keep the choice
         }
@@ -396,7 +405,7 @@ class FpiController extends Controller
                 'dateOfCommencementOfBusiness'  => ['nullable', 'date', 'before_or_equal:today'],
                 'placeOfIncorporation'          => ['required', 'string', 'max:100'],
                 'countryOfIncorporation'        => ['required', 'integer', Rule::exists('m_countries', 'country_id')],
-                'lei'                           => ['nullable', 'string', 'size:20', 'regex:/^[A-Z0-9]{20}$/'],
+                'lei'                           => ['nullable', 'string', 'size:20', $this->leiRule()],
                 'leiExpiryDate'                 => ['nullable', 'date'],
             ],
             'contact' => [
@@ -423,13 +432,8 @@ class FpiController extends Controller
                 'email'           => ['required', 'email', 'max:100'],
             ],
             'ubo' => [
-                'hasUbos'        => ['required', Rule::in(['YES', 'NO'])],
-                'uboName'        => ['nullable', 'required_if:hasUbos,YES', 'string', 'max:150'],
-                'uboDob'         => ['nullable', 'required_if:hasUbos,YES', 'date', 'before_or_equal:today'],
-                'uboNationality' => ['nullable', 'required_if:hasUbos,YES', 'string', 'max:100'],
-                'uboPassport'    => ['nullable', 'required_if:hasUbos,YES', 'string', 'max:50'],
-                'uboOwnership'   => ['nullable', 'required_if:hasUbos,YES', 'numeric', 'between:0,100'],
-                'uboAddress'     => ['nullable', 'required_if:hasUbos,YES', 'string', 'max:1000'],
+                'hasUbos'      => ['required', Rule::in(['YES', 'NO'])],
+                'uboRowsJson'  => ['nullable', 'string'],
             ],
             'financial' => [
                 // Everything on this tab is mandatory except the Net Worth Date.
@@ -498,6 +502,43 @@ class FpiController extends Controller
         };
     }
 
+    /** ISO 17442 LEI: 20 chars, positions 5-6 = "00", 19-20 numeric, ISO 7064 mod-97-10 checksum. */
+    private function leiRule(): \Closure
+    {
+        return function ($attribute, $value, $fail) {
+            $v = strtoupper(trim((string) $value));
+            if ($v === '') {
+                return;
+            }
+            if (!preg_match('/^[A-Z0-9]{18}[0-9]{2}$/', $v)) {
+                $fail('LEI must be 20 characters: 18 alphanumeric + 2 numeric check digits.');
+                return;
+            }
+            if (substr($v, 4, 2) !== '00') {
+                $fail('LEI is invalid: characters 5-6 must be "00" (ISO 17442).');
+                return;
+            }
+            if (!$this->leiChecksumValid($v)) {
+                $fail('LEI checksum is invalid (failed the ISO 17442 / mod-97 check).');
+            }
+        };
+    }
+
+    /** ISO 7064 MOD 97-10: letters A-Z -> 10-35, whole number mod 97 must equal 1. */
+    private function leiChecksumValid(string $lei): bool
+    {
+        $digits = '';
+        for ($i = 0, $n = strlen($lei); $i < $n; $i++) {
+            $c = $lei[$i];
+            $digits .= ctype_alpha($c) ? (string) (ord($c) - 55) : $c;
+        }
+        $rem = 0;
+        for ($i = 0, $n = strlen($digits); $i < $n; $i++) {
+            $rem = ($rem * 10 + (int) $digits[$i]) % 97;
+        }
+        return $rem === 1;
+    }
+
     private function messages(): array
     {
         return [
@@ -542,6 +583,17 @@ class FpiController extends Controller
             }
         }
         $request->validate($rules, $this->messages());
+
+        // Beneficial Ownership: validate each UBO row (when the entity has UBOs).
+        if ($section === 'ubo' && $request->input('hasUbos') === 'YES') {
+            $err = $this->validateUboRows($request->input('uboRowsJson'));
+            if ($err) {
+                if ($request->wantsJson()) {
+                    return response()->json(['ok' => false, 'message' => $err, 'errors' => ['uboRowsJson' => [$err]]], 422);
+                }
+                return back()->withErrors(['uboRowsJson' => $err])->with('active_section', 'ubo');
+            }
+        }
 
         $labels = [
             'applicant' => 'Applicant Profile', 'contact' => 'Contact & Address',
@@ -726,21 +778,52 @@ class FpiController extends Controller
         ]);
     }
 
-    /** Tab 4 -> ubo (1:N). */
+    /** Validate the JSON list of UBO rows; returns an error string or null. */
+    private function validateUboRows($json): ?string
+    {
+        $rows = json_decode($json ?? '', true);
+        if (!is_array($rows) || count($rows) === 0) {
+            return 'Please add at least one beneficial owner.';
+        }
+        foreach ($rows as $i => $r) {
+            $n = $i + 1;
+            if (trim($r['name'] ?? '') === '') return "UBO {$n}: full name is required.";
+            if (empty($r['dob'])) return "UBO {$n}: date of birth is required.";
+            if (strtotime($r['dob']) > strtotime(date('Y-m-d'))) return "UBO {$n}: date of birth cannot be in the future.";
+            if (empty($r['nationality'])) return "UBO {$n}: nationality is required.";
+            if (trim($r['passport'] ?? '') === '') return "UBO {$n}: passport / national ID is required.";
+            $pct = $r['ownership'] ?? '';
+            if ($pct === '' || !is_numeric($pct) || $pct < 0 || $pct > 100) return "UBO {$n}: ownership % must be between 0 and 100.";
+            if (trim($r['address'] ?? '') === '') return "UBO {$n}: residential address is required.";
+        }
+        return null;
+    }
+
+    /** Tab 4 -> ubo (1:N). Multiple UBO rows carried from the determination tool. */
     private function saveUboSection(Request $request, int $id): void
     {
         DB::table('ubo')->where('applicant_id', $id)->delete();
-        if ($request->input('hasUbos') === 'YES') {
+        if ($request->input('hasUbos') !== 'YES') {
+            return;
+        }
+        $rows = json_decode($request->input('uboRowsJson') ?? '', true);
+        if (!is_array($rows)) {
+            return;
+        }
+        foreach ($rows as $r) {
+            if (trim($r['name'] ?? '') === '') {
+                continue;
+            }
             DB::table('ubo')->insert([
-                'applicant_id'             => $id,
+                'applicant_id'                => $id,
                 'is_senior_managing_official' => 0,
-                'full_name'                => $request->input('uboName'),
-                'residential_address'      => $request->input('uboAddress'),
-                'date_of_birth'            => $request->input('uboDob') ?: null,
-                'nationality_country_id'   => $request->input('uboNationality') ?: null,
-                'shareholding_capital_pct' => $request->input('uboOwnership') ?: null,
-                'id_document_type'         => $request->filled('uboPassport') ? 'Passport' : null,
-                'id_document_number'       => $request->input('uboPassport') ?: null,
+                'full_name'                   => $r['name'],
+                'residential_address'         => $r['address'] ?? '',
+                'date_of_birth'               => !empty($r['dob']) ? $r['dob'] : null,
+                'nationality_country_id'      => !empty($r['nationality']) ? (int) $r['nationality'] : null,
+                'shareholding_capital_pct'    => ($r['ownership'] ?? '') !== '' ? $r['ownership'] : null,
+                'id_document_type'            => !empty($r['passport']) ? 'Passport' : null,
+                'id_document_number'          => $r['passport'] ?? null,
             ]);
         }
     }
