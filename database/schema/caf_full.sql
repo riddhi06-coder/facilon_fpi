@@ -314,6 +314,7 @@ CREATE TABLE `corporate_applicant_details` (
   `applicant_id` bigint(20) unsigned NOT NULL,
   `name_title_code` varchar(40) DEFAULT NULL,
   `company_name` varchar(200) NOT NULL,
+  `applicant_legal_type` varchar(60) DEFAULT NULL,
   `date_of_incorporation` date NOT NULL,
   `date_commence_business` date DEFAULT NULL,
   `place_of_incorporation` varchar(100) NOT NULL,
