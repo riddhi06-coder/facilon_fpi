@@ -1148,7 +1148,10 @@ $serverErrorsJs = $errors->messages();
 
         {{-- STEP 8: Declarations --}}
         <div class="fpi-step-panel" data-panel="declarations">
-            <div class="fpi-card-heading">Step 9: Final Declarations & Document Upload</div>
+            <div class="fpi-card-heading" style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                <span>{{ $isIndividual ? 'Step 7: Document Upload & Declaration' : 'Step 9: Final Declarations & Document Upload' }}</span>
+                <a href="{{ route('fpi.preview') }}" target="_blank" rel="noopener" id="fpiPrintPreviewTop" class="btn btn-sm fpi-print-btn" style="display:none;padding:5px 14px;font-size:12px;text-decoration:none;white-space:nowrap">🖨 Print / Preview</a>
+            </div>
             <div id="fpiSubmittedNote" style="display:none;background:#d1e7dd;color:#0f5132;border:1px solid #badbcc;border-radius:6px;padding:10px 14px;font-size:11.5px;margin-bottom:14px">
                 ✅ Your application has been submitted. You can now use <strong>Print Preview</strong> to review / print the completed form.
             </div>
@@ -1308,6 +1311,8 @@ $serverErrorsJs = $errors->messages();
 
             const printBtn = document.getElementById('fpiPrintPreview');
             if (printBtn) printBtn.style.display = (IS_SUBMITTED && onFinal) ? '' : 'none';
+            const printBtnTop = document.getElementById('fpiPrintPreviewTop');
+            if (printBtnTop) printBtnTop.style.display = IS_SUBMITTED ? '' : 'none';
             const note = document.getElementById('fpiSubmittedNote');
             if (note) note.style.display = (IS_SUBMITTED && onFinal) ? '' : 'none';
 
