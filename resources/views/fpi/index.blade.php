@@ -2756,13 +2756,22 @@ $serverErrorsJs = $errors->messages();
                 return;
             }
             Swal.fire({
-                icon: 'question',
-                title: 'Submit application?',
-                text: 'Please review all details. After submission the form becomes read-only.',
+                icon: 'warning',
+                title: 'Confirm final submission',
+                html: '<div style="text-align:left;font-size:13px;line-height:1.6;color:#3d4f5e">'
+                    + 'You are about to <strong>submit this FPI application</strong>. Please make sure every detail is correct.'
+                    + '<ul style="margin:10px 0 0 18px;padding:0">'
+                    + '<li>This is your <strong>final submission</strong>.</li>'
+                    + '<li>Once submitted, the application becomes <strong>read-only</strong> and cannot be edited.</li>'
+                    + '<li>You will still be able to Print / Preview the submitted form.</li>'
+                    + '</ul></div>',
                 showCancelButton: true,
-                confirmButtonText: 'Yes, submit',
+                reverseButtons: true,
+                focusCancel: true,
+                confirmButtonText: 'Yes, submit application',
                 confirmButtonColor: '#27ae60',
-                cancelButtonText: 'Cancel',
+                cancelButtonText: 'Go back &amp; review',
+                cancelButtonColor: '#6c7a86',
             }).then(r => {
                 if (r.isConfirmed) document.getElementById('fpiSubmitForm').submit();
             });
@@ -3168,6 +3177,36 @@ $serverErrorsJs = $errors->messages();
                     haltAutofill(steps[current].tab);
                     return;
                 }
+            }
+            // Ask for the client's consent before the final submission (auto-fill still confirms).
+            Swal.hideLoading();
+            const confirmed = await Swal.fire({
+                icon: 'warning',
+                title: 'Confirm final submission',
+                html: '<div style="text-align:left;font-size:13px;line-height:1.6;color:#3d4f5e">'
+                    + 'All tabs have been filled and saved. Please review before you submit.'
+                    + '<ul style="margin:10px 0 0 18px;padding:0">'
+                    + '<li>This is your <strong>final submission</strong>.</li>'
+                    + '<li>Once submitted, the application becomes <strong>read-only</strong> and cannot be edited.</li>'
+                    + '<li>You will still be able to Print / Preview the submitted form.</li>'
+                    + '</ul></div>',
+                showCancelButton: true,
+                reverseButtons: true,
+                focusCancel: true,
+                confirmButtonText: 'Yes, submit application',
+                confirmButtonColor: '#27ae60',
+                cancelButtonText: 'Go back &amp; review',
+                cancelButtonColor: '#6c7a86',
+                allowOutsideClick: false,
+            }).then(r => r.isConfirmed);
+            if (!confirmed) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Not submitted',
+                    html: 'Everything was filled and <strong>saved</strong>, but the application was <strong>not submitted</strong>. You can review and submit it whenever you are ready.',
+                    confirmButtonColor: '#3e6f7c',
+                }).then(() => window.location.reload());
+                return;
             }
             // Final submission
             Swal.update({
