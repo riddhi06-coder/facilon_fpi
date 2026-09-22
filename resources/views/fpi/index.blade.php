@@ -1236,7 +1236,6 @@ $serverErrorsJs = $errors->messages();
                 <button type="button" class="btn btn-outline btn-sm js-fpi-autofill" id="fpiAutofillSection" style="padding:5px 12px;font-size:12.5px">⚡ Auto-fill &amp; Save All</button>
             </div>
             <div style="display:flex;gap:6px">
-                <a href="{{ route('fpi.preview') }}" target="_blank" rel="noopener" class="btn btn-sm fpi-print-btn" id="fpiPrintPreview" style="padding:5px 14px;font-size:12.5px;display:none;text-decoration:none">🖨 Print / Preview</a>
                 <button type="button" class="btn btn-primary btn-sm" id="fpiSaveTab" style="padding:5px 14px;font-size:12.5px">Save Section</button>
                 <button type="button" class="btn btn-primary btn-sm" id="fpiNext" style="padding:5px 14px;font-size:12.5px">Next</button>
                 <button type="button" class="btn btn-primary btn-sm" id="fpiSubmit" style="padding:5px 14px;font-size:12.5px;display:none;background:var(--success)" disabled>Submit Application</button>
@@ -1309,8 +1308,6 @@ $serverErrorsJs = $errors->messages();
                 });
             }
 
-            const printBtn = document.getElementById('fpiPrintPreview');
-            if (printBtn) printBtn.style.display = (IS_SUBMITTED && onFinal) ? '' : 'none';
             const printBtnTop = document.getElementById('fpiPrintPreviewTop');
             if (printBtnTop) printBtnTop.style.display = IS_SUBMITTED ? '' : 'none';
             const note = document.getElementById('fpiSubmittedNote');
