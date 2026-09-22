@@ -20,6 +20,15 @@ class FpiController extends Controller
         // Blank form: text/date/number fields cleared; dropdowns keep their
         // normal default selection (unchanged).
         return [
+            // Individual applicant (Step 1) — persisted via caf_extra_json['ind_applicant']
+            'indTitle' => '', 'indFirstName' => '', 'indMiddleName' => '', 'indLastName' => '',
+            'indOtherName' => '', 'indOtherTitle' => '', 'indOtherFirstName' => '', 'indOtherMiddleName' => '', 'indOtherLastName' => '',
+            'indDob' => '', 'indPlaceOfBirth' => '', 'indCountryOfBirth' => '', 'indBirthIsd' => '',
+            'indNationality' => '', 'indNationalityIsd' => '', 'indPassport' => '',
+            'indGender' => '', 'indMaritalStatus' => '', 'indCitizenshipStatus' => '', 'indCountryOfCitizenship' => '',
+            'indFatherFirstName' => '', 'indFatherMiddleName' => '', 'indFatherLastName' => '',
+            'indMotherFirstName' => '', 'indMotherMiddleName' => '', 'indMotherLastName' => '',
+            'indSpouseFirstName' => '', 'indSpouseMiddleName' => '', 'indSpouseLastName' => '',
             'nameTitle' => '',
             'entityName' => '',
             'applicantType' => '',
@@ -30,11 +39,13 @@ class FpiController extends Controller
             'dateOfCommencementOfBusiness' => '',
             'placeOfIncorporation' => '',
             'countryOfIncorporation' => '',
+            'incorporationIsdCode' => '',
             'lei' => '',
             'leiExpiryDate' => '',
             'regAddressLine1' => '',
             'regAddressLine2' => '',
             'regAddressLine3' => '',
+            'regAddressLine4' => '',
             'regCity' => '',
             'regState' => '',
             'regCountry' => '',
@@ -43,13 +54,33 @@ class FpiController extends Controller
             'commAddressLine1' => '',
             'commAddressLine2' => '',
             'commAddressLine3' => '',
+            'commAddressLine4' => '',
             'commCity' => '',
             'commState' => '',
             'commCountry' => '',
             'commZip' => '',
+            'offAddressLine1' => '',
+            'offAddressLine2' => '',
+            'offAddressLine3' => '',
+            'offAddressLine4' => '',
+            'offCity' => '',
+            'offState' => '',
+            'offCountry' => '',
+            'offZip' => '',
+            'telIsdCode' => '',
+            'telAreaCode' => '',
             'telNumber' => '',
+            'offTelIsdCode' => '',
+            'offTelAreaCode' => '',
+            'offTelNumber' => '',
             'mobileNumber' => '',
+            'faxNumber' => '',
+            'website' => '',
             'email' => '',
+            'hasSubFunds' => '',
+            'subFundsData' => [],
+            'intermediatesData' => [],
+            'controllersData' => [],
             'hasUbos' => '',
             'uboName' => '',
             'uboDob' => '',
@@ -58,15 +89,51 @@ class FpiController extends Controller
             'uboOwnership' => '',
             'uboAddress' => '',
             'incomeRange' => '',
+            'incomeSources' => [],
+            'professionCode' => '',
+            'grossIncome' => '',
+            'occupation' => '',
             'netWorth' => '',
             'netWorthDate' => '',
             'taxCountry' => '',
             'tin' => '',
+            'tinReason' => '',
+            'tinExplanation' => '',
+            'trcNumber' => '',
+            'taxResidenciesData' => [],
+            'fatcaCrs' => '',
+            'isPep' => '',
+            'relatedToPep' => '',
             'fpiCategory' => '',
+            'subCategory' => '',
+            'mimStructure' => '',
+            'investmentManagersData' => [],
             'regulatoryStatus' => '',
             'regulatorName' => '',
             'licenseNumber' => '',
             'regulatorJurisdiction' => '',
+            'regulatorCountry' => '',
+            'regulatorWebsite' => '',
+            'regulatorCapacity' => '',
+            'complianceName' => '',
+            'complianceTitle' => '',
+            'complianceEmail' => '',
+            'compliancePhone' => '',
+            'complianceFax' => '',
+            'hasCustodian' => '',
+            'custodianNameCat' => '',
+            'custodianReg' => '',
+            'custRegCode' => '',
+            'custodianAddress' => '',
+            'disciplinaryHistory' => '',
+            'disciplinaryDetails' => '',
+            'clubbingDeclaration' => '',
+            'fpiGroupNumber' => '',
+            'groupNumber' => '',
+            'fpiGroupData' => [],
+            'publicRetailData' => [],
+            'priorAssociation' => '',
+            'priorAssociationsData' => [],
             'pan' => '',
             'bankName' => '',
             'bankAccount' => '',
@@ -75,12 +142,76 @@ class FpiController extends Controller
             'custodianName' => '',
             'dpId' => '',
             'clientId' => '',
+            'hasPan' => '',
+            'existingpanName' => '',
+            'statusApplicant' => '',
+            'panName' => '',
+            'aoAreaCode' => '',
+            'aoType' => '',
+            'aoRangeCode' => '',
+            'aoNo' => '',
+            'registrationNumber' => '',
+            'repTitle' => '',
+            'repLastName' => '',
+            'repFirstName' => '',
+            'repMiddleName' => '',
+            'repAddress' => '',
+            'listed' => '',
+            'exchangeName' => '',
+            'poiType' => '',
+            'poiNumber' => '',
+            'poaType' => '',
+            'poaNumber' => '',
+            'sensitiveActivities' => [],
+            'depositoryAuth' => '',
+            'modeOfOperation' => '',
+            'otherMode' => '',
+            'bankAuth' => '',
             'primaryContactName' => '',
             'primaryContactDesignation' => '',
             'investmentManagerName' => '',
             'indiaPlaceOfBusiness' => '',
+            'odiDerivatives' => '',
+            'shareClassesData' => [],
+            'categoryOneEntitiesData' => [],
+            'bankDeclaration' => '',
+            'bankEntityName' => '',
+            'nriControl1' => '',
+            'nriControl2' => '',
+            'imTypes' => [],
+            'directlyControlled' => '',
+            'nriControlEntityName' => '',
+            'offshoreFund' => '',
+            'nriEntitlement' => '',
+            'reg5b7' => '',
+            'clientEligI' => false,
+            'clientEligII' => false,
+            'clientEligIII' => false,
+            'clientsData' => [],
+            'kraConsent' => '',
+            'kraRepName' => '',
+            'kraEmail1' => '',
+            'kraEmail2' => '',
+            'kraEmail3' => '',
+            'kraMobile' => '',
+            'signatoriesData' => [],
             'declarationAgreed' => false,
             'signatureName' => '',
+            'declarationPlace' => '',
+            'declarationDate' => '',
+            'applicantName' => '',
+            'applicantDesignation' => '',
+            'authorizedName' => '',
+            'authDesignation' => '',
+            'authDate' => '',
+            'declaration1' => false,
+            'declaration2' => false,
+            'declaration3' => false,
+            'uploadedPoi' => '', 'uploadedPoi_uri' => '',
+            'uploadedPoa' => '', 'uploadedPoa_uri' => '',
+            'uploadedFatca' => '', 'uploadedFatca_uri' => '',
+            'uploadedSignature' => '', 'uploadedSignature_uri' => '',
+            'otherDocs' => [],
             'uploadedIncorpCert' => '',
             'uploadedLeiProof' => '',
             'uploadedPanCopy' => '',
@@ -93,8 +224,42 @@ class FpiController extends Controller
         ];
     }
 
+    /** Landing page: choose the applicant kind (Individual / Non-Individual) before filling the form. */
+    public function start()
+    {
+        return view('fpi.start', [
+            'entityType' => session('caf_entity_type'),
+        ]);
+    }
+
+    /** Handle the start page: record the chosen applicant kind, then open a fresh form. */
+    public function begin(Request $request)
+    {
+        $request->validate(
+            ['entityType' => ['required', Rule::in(['Individual', 'Non-Individual'])]],
+            ['entityType.required' => 'Please select an applicant type to continue.',
+             'entityType.in'       => 'Please select a valid applicant type.']
+        );
+
+        // Start a fresh application for the chosen kind.
+        session()->forget('caf_applicant_id');
+        session(['caf_entity_type' => $request->input('entityType')]);
+
+        return redirect()->route($this->formRoute());
+    }
+
     public function index()
     {
+        // The form is only reachable after a kind has been chosen on the start page
+        // (or when re-opening an existing application).
+        if (!session('caf_entity_type') && !session('caf_applicant_id')) {
+            return redirect()->route('fpi.start');
+        }
+        // Keep the URL consistent with the chosen applicant kind.
+        if (\Illuminate\Support\Facades\Route::currentRouteName() !== $this->formRoute()) {
+            return redirect()->route($this->formRoute());
+        }
+
         $form = $this->defaultForm();
 
         // Pre-fetch the current draft applicant (if any) from the DB.
@@ -131,34 +296,42 @@ class FpiController extends Controller
         $uboList = [];
         if ($applicantId) {
             $uboList = DB::table('ubo')->where('applicant_id', $applicantId)->orderBy('ubo_id')->get()->map(fn ($u) => [
-                'name'        => $u->full_name,
-                'dob'         => $u->date_of_birth,
-                'nationality' => (string) ($u->nationality_country_id ?? ''),
-                'passport'    => $u->id_document_number,
-                'ownership'   => $u->shareholding_capital_pct !== null ? (string) $u->shareholding_capital_pct : '',
-                'address'     => $u->residential_address,
+                'name'           => $u->full_name,
+                'dob'            => $u->date_of_birth,
+                'taxJurisdiction' => (string) ($u->tax_residency_country_id ?? ''),
+                'nationality'    => (string) ($u->nationality_country_id ?? ''),
+                'actingGroup'    => $u->acting_group_details ?? '',
+                'passport'       => $u->id_document_number,
+                'ownership'      => $u->shareholding_capital_pct !== null ? (string) $u->shareholding_capital_pct : '',
+                'address'        => $u->residential_address,
             ])->values()->toArray();
         }
 
-        return view('fpi.index', compact('form', 'countries', 'isdCodes', 'activeSection', 'savedSections', 'isSubmitted', 'applications', 'currentApplicantId', 'uboList'));
+        $entityType = session('caf_entity_type', 'Non-Individual');
+
+        return view('fpi.index', compact('form', 'countries', 'isdCodes', 'activeSection', 'savedSections', 'isSubmitted', 'applications', 'currentApplicantId', 'uboList', 'entityType'));
     }
 
     /** Start a fresh application (keeps the submitted record; just detaches the session draft). */
     public function newApplication()
     {
         session()->forget('caf_applicant_id');
-        return redirect()->route('fpi.index')->with('status', 'Started a new application. You can begin entering details.');
+        session()->forget('caf_entity_type');
+        return redirect()->route('fpi.start');
     }
 
     /** Re-open an existing application (draft or submitted) by id. */
     public function load($applicant)
     {
-        if (DB::table('applicants')->where('applicant_id', $applicant)->exists()) {
+        $row = DB::table('applicants')->where('applicant_id', $applicant)->first();
+        if ($row) {
             session(['caf_applicant_id' => (int) $applicant]);
-            return redirect()->route('fpi.index')
+            // Sync the entity kind from the record so the URL + form match on reopen.
+            session(['caf_entity_type' => $row->entity_type === 'Individual' ? 'Individual' : 'Non-Individual']);
+            return redirect()->route($this->formRoute())
                 ->with('status', 'Opened application FPI-' . str_pad($applicant, 6, '0', STR_PAD_LEFT) . '.');
         }
-        return redirect()->route('fpi.index')->withErrors(['submit' => 'Application not found.']);
+        return redirect()->route($this->formRoute())->withErrors(['submit' => 'Application not found.']);
     }
 
     /** Professional printable / PDF preview of the whole application. */
@@ -166,7 +339,7 @@ class FpiController extends Controller
     {
         $id = session('caf_applicant_id');
         if (!$id || !DB::table('applicants')->where('applicant_id', $id)->exists()) {
-            return redirect()->route('fpi.index')->withErrors(['submit' => 'No application to preview yet.']);
+            return redirect()->route($this->formRoute())->withErrors(['submit' => 'No application to preview yet.']);
         }
 
         $countries = DB::table('m_countries')->pluck('label_en', 'country_id')->toArray();
@@ -195,7 +368,62 @@ class FpiController extends Controller
             'generatedAt' => now()->format('d M Y, H:i'),
         ];
 
+        // UBO Determination: identified natural persons with effective ownership %.
+        $tree = $p['app']->ubo_structure_json ? json_decode($p['app']->ubo_structure_json, true) : null;
+        $p['uboPersons'] = $this->computeUboPersons($tree['entities'] ?? []);
+        $p['uboThreshold'] = 10;
+
+        // Everything captured in the flexible JSON stores (Steps 4–8 extras + BO tables).
+        $extra = json_decode($p['app']->caf_extra_json ?? '{}', true) ?: [];
+        $p['extra']       = $extra;
+        $p['financialX']  = $extra['financial'] ?? [];
+        $p['categoryX']   = $extra['category'] ?? [];
+        $p['depositoryX'] = $extra['depository'] ?? [];
+        $p['additionalX'] = $extra['additional'] ?? [];
+        $p['declX']       = $extra['declarations'] ?? [];
+        $p['indX']        = $extra['ind_applicant'] ?? [];
+        $p['bo']          = json_decode($p['app']->beneficial_ownership_json ?? '{}', true) ?: [];
+        $p['offContact']  = DB::table('applicant_contacts')->where('applicant_id', $id)->where('contact_type', 'Office')->first();
+
         return view('fpi.preview', $p);
+    }
+
+    /** Aggregate all natural persons in the ownership tree with their effective % (server mirror of the JS tool). */
+    private function computeUboPersons(array $entities): array
+    {
+        $byId = [];
+        foreach ($entities as $e) {
+            $byId[$e['id'] ?? ''] = $e;
+        }
+        $results = [];
+        $visited = [];
+        $traverse = function ($entityId, $multiplier) use (&$traverse, $byId, &$results, &$visited) {
+            if (!isset($byId[$entityId]) || !empty($visited[$entityId])) {
+                return;
+            }
+            $visited[$entityId] = true;
+            foreach ($byId[$entityId]['owners'] ?? [] as $owner) {
+                $eff = ((float) ($owner['pct'] ?? 0) / 100) * $multiplier;
+                if (($owner['type'] ?? '') === 'Individual') {
+                    $nm = trim($owner['name'] ?? '');
+                    if ($nm === '') {
+                        continue;
+                    }
+                    $key = strtolower($nm);
+                    if (isset($results[$key])) {
+                        $results[$key]['effectivePct'] += $eff;
+                    } else {
+                        $results[$key] = ['name' => $nm, 'effectivePct' => $eff];
+                    }
+                } elseif (($owner['type'] ?? '') === 'Entity') {
+                    $traverse($owner['targetId'] ?? '', $eff);
+                }
+            }
+            unset($visited[$entityId]);
+        };
+        $traverse('applicant', 100);
+
+        return array_values($results);
     }
 
     /** Final submission: validate completeness, mark SUBMITTED, log status history. */
@@ -206,11 +434,14 @@ class FpiController extends Controller
             $m = 'Please fill and save the form before submitting.';
             return $request->wantsJson()
                 ? response()->json(['ok' => false, 'message' => $m], 422)
-                : redirect()->route('fpi.index')->withErrors(['submit' => $m]);
+                : redirect()->route($this->formRoute())->withErrors(['submit' => $m]);
         }
 
         // Required sections must be saved before an application can be submitted.
-        $required = ['applicant', 'contact', 'ubo', 'financial', 'category', 'depository', 'declarations'];
+        // Beneficial Ownership (ubo) applies to Non-Individual applicants only.
+        $required = $this->isIndividual()
+            ? ['applicant', 'contact', 'financial', 'category', 'depository', 'declarations']
+            : ['applicant', 'contact', 'ubo', 'financial', 'category', 'depository', 'declarations'];
         $done = DB::table('application_section_progress')->where('applicant_id', $id)
             ->where('is_complete', 1)->pluck('section_code')->toArray();
         $missing = array_diff($required, $done);
@@ -224,7 +455,7 @@ class FpiController extends Controller
             $m = "Please complete & save these sections before submitting: {$names}.";
             return $request->wantsJson()
                 ? response()->json(['ok' => false, 'message' => $m], 422)
-                : redirect()->route('fpi.index')->with('active_section', reset($missing))->withErrors(['submit' => $m]);
+                : redirect()->route($this->formRoute())->with('active_section', reset($missing))->withErrors(['submit' => $m]);
         }
 
         $current = DB::table('applicants')->where('applicant_id', $id)->value('application_status');
@@ -241,11 +472,32 @@ class FpiController extends Controller
             session()->flash('active_section', 'declarations'); // reopen final tab on the client's reload
             return response()->json(['ok' => true, 'message' => $m]);
         }
-        return redirect()->route('fpi.index')->with('status', $m)->with('active_section', 'declarations');
+        return redirect()->route($this->formRoute())->with('status', $m)->with('active_section', 'declarations');
     }
 
-    /** Section order for the wizard flow. */
+    /** Section order for the wizard flow (Non-Individual). */
     private array $order = ['applicant', 'contact', 'ubo_tool', 'ubo', 'financial', 'category', 'depository', 'additional', 'declarations'];
+
+    /** Individual applicants skip the UBO determination + beneficial-ownership steps. */
+    private array $orderIndividual = ['applicant', 'contact', 'financial', 'category', 'depository', 'additional', 'declarations'];
+
+    /** Is the current draft an Individual applicant? */
+    private function isIndividual(): bool
+    {
+        return session('caf_entity_type') === 'Individual';
+    }
+
+    /** The type-specific route name for the form (URL reflects applicant kind). */
+    private function formRoute(): string
+    {
+        return $this->isIndividual() ? 'fpi.individual' : 'fpi.non-individual';
+    }
+
+    /** The active section order for the current applicant kind. */
+    private function order(): array
+    {
+        return $this->isIndividual() ? $this->orderIndividual : $this->order;
+    }
 
     private function isdCodes(): array
     {
@@ -261,6 +513,44 @@ class FpiController extends Controller
         return DB::table('application_section_progress')
             ->where('applicant_id', $applicantId)->where('is_complete', 1)
             ->pluck('section_code')->toArray();
+    }
+
+    /** Read the section-keyed extra-fields JSON document for an applicant. */
+    private function loadExtra($applicantId): array
+    {
+        $raw = DB::table('applicants')->where('applicant_id', $applicantId)->value('caf_extra_json');
+        $data = $raw ? json_decode($raw, true) : [];
+        return is_array($data) ? $data : [];
+    }
+
+    /** Merge one section's slice into the extra-fields JSON document (read-modify-write). */
+    private function saveExtra(int $id, string $section, array $data): void
+    {
+        $all = $this->loadExtra($id);
+        $all[$section] = $data;
+        DB::table('applicants')->where('applicant_id', $id)->update(['caf_extra_json' => json_encode($all)]);
+    }
+
+    /** Decode a JSON array field from the request (returns [] on anything invalid). */
+    private function jsonArray(Request $request, string $field): array
+    {
+        $v = json_decode($request->input($field) ?? '[]', true);
+        return is_array($v) ? array_values($v) : [];
+    }
+
+    /** Validation closure: every row present in a JSON table must have all the given columns filled. */
+    private function allRowsFilled(array $keys, string $label): \Closure
+    {
+        return function ($attr, $value, $fail) use ($keys, $label) {
+            foreach ((json_decode($value ?? '[]', true) ?: []) as $i => $row) {
+                foreach ($keys as $k) {
+                    if (trim((string) ($row[$k] ?? '')) === '') {
+                        $fail("Please complete all columns for every {$label} row (row " . ($i + 1) . ').');
+                        return;
+                    }
+                }
+            }
+        };
     }
 
     /** Load a draft applicant's stored values back into form-field keys. */
@@ -279,6 +569,7 @@ class FpiController extends Controller
             $out['dateOfCommencementOfBusiness'] = $corp->date_commence_business;
             $out['placeOfIncorporation'] = $corp->place_of_incorporation;
             $out['countryOfIncorporation'] = (string) $corp->incorporation_country_id;
+            $out['incorporationIsdCode'] = $corp->incorporation_isd_code ?? '';
             $out['lei'] = $corp->lei_number;
             $out['leiExpiryDate'] = $corp->lei_expiry_date;
             $out['indiaPlaceOfBusiness'] = $corp->india_place_of_business ?? '';
@@ -298,23 +589,39 @@ class FpiController extends Controller
         if ($addrs->count()) {
             $reg = $addrs[0];
             $out['regAddressLine1'] = $reg->flat_room_block; $out['regAddressLine2'] = $reg->premises_building;
-            $out['regAddressLine3'] = $reg->road_street_lane; $out['regCity'] = $reg->town_city_district;
+            $out['regAddressLine3'] = $reg->road_street_lane; $out['regAddressLine4'] = $reg->area_locality_taluka;
+            $out['regCity'] = $reg->town_city_district;
             $out['regState'] = $reg->state_union_territory; $out['regZip'] = $reg->pin_zip_code;
             $out['regCountry'] = (string) $reg->country_id;
             if ($addrs->count() > 1) {
                 $comm = $addrs[1]; $out['sameAddress'] = false;
                 $out['commAddressLine1'] = $comm->flat_room_block; $out['commAddressLine2'] = $comm->premises_building;
-                $out['commAddressLine3'] = $comm->road_street_lane; $out['commCity'] = $comm->town_city_district;
+                $out['commAddressLine3'] = $comm->road_street_lane; $out['commAddressLine4'] = $comm->area_locality_taluka;
+                $out['commCity'] = $comm->town_city_district;
                 $out['commState'] = $comm->state_union_territory; $out['commZip'] = $comm->pin_zip_code;
                 $out['commCountry'] = (string) $comm->country_id;
             } else {
                 $out['sameAddress'] = (bool) $reg->is_communication_dest;
             }
         }
+        $office = DB::table('applicant_addresses')->where('applicant_id', $applicantId)->where('address_type', 'Office')->orderBy('address_id')->first();
+        if ($office) {
+            $out['offAddressLine1'] = $office->flat_room_block; $out['offAddressLine2'] = $office->premises_building;
+            $out['offAddressLine3'] = $office->road_street_lane; $out['offAddressLine4'] = $office->area_locality_taluka;
+            $out['offCity'] = $office->town_city_district; $out['offState'] = $office->state_union_territory;
+            $out['offZip'] = $office->pin_zip_code; $out['offCountry'] = (string) $office->country_id;
+        }
         $resContact = DB::table('applicant_contacts')->where('applicant_id', $applicantId)->where('contact_type', 'Residence')->first();
         if ($resContact) {
+            $out['telIsdCode'] = $resContact->tel_isd_code; $out['telAreaCode'] = $resContact->tel_std_area_code;
             $out['telNumber'] = $resContact->telephone_number; $out['mobileNumber'] = $resContact->mobile_number;
+            $out['faxNumber'] = $resContact->fax_number; $out['website'] = $resContact->website;
             $out['email'] = $resContact->email_id;
+        }
+        $offContact = DB::table('applicant_contacts')->where('applicant_id', $applicantId)->where('contact_type', 'Office')->first();
+        if ($offContact) {
+            $out['offTelIsdCode'] = $offContact->tel_isd_code; $out['offTelAreaCode'] = $offContact->tel_std_area_code;
+            $out['offTelNumber'] = $offContact->telephone_number;
         }
 
         // Tab 4 — Beneficial Ownership (rows themselves are passed as $uboList)
@@ -327,6 +634,17 @@ class FpiController extends Controller
         // Tab 3 — UBO Determination tool (ownership tree JSON)
         if ($app && $app->ubo_structure_json) {
             $out['uboStructure'] = $app->ubo_structure_json;
+        }
+
+        // Tab 4 — Sub-funds, intermediate & controlling entities (Step 3 JSON doc)
+        if ($app && $app->beneficial_ownership_json) {
+            $bo = json_decode($app->beneficial_ownership_json, true);
+            if (is_array($bo)) {
+                $out['hasSubFunds']       = $bo['hasSubFunds'] ?? '';
+                $out['subFundsData']      = $bo['subFunds'] ?? [];
+                $out['intermediatesData'] = $bo['intermediates'] ?? [];
+                $out['controllersData']   = $bo['controllers'] ?? [];
+            }
         }
 
         // Tab 5 — Financial & Tax
@@ -386,6 +704,15 @@ class FpiController extends Controller
             }
         }
 
+        // Merge the section-keyed extra-fields document (Steps 4–8) back into form keys.
+        foreach ($this->loadExtra($applicantId) as $slice) {
+            if (is_array($slice)) {
+                foreach ($slice as $k => $v) {
+                    $out[$k] = $v;
+                }
+            }
+        }
+
         // Drop nulls so form defaults ('') apply cleanly.
         return array_filter($out, fn ($v) => $v !== null);
     }
@@ -393,7 +720,7 @@ class FpiController extends Controller
     /** Validation rules grouped per section (tab). */
     private function sectionRules(): array
     {
-        return [
+        $rules = [
             'applicant' => [
                 'nameTitle'                     => ['required', Rule::in(['M/S', 'MR', 'MRS', 'MS'])],
                 'entityName'                    => ['required', 'string', 'max:200'],
@@ -405,6 +732,7 @@ class FpiController extends Controller
                 'dateOfCommencementOfBusiness'  => ['nullable', 'date', 'before_or_equal:today'],
                 'placeOfIncorporation'          => ['required', 'string', 'max:100'],
                 'countryOfIncorporation'        => ['required', 'integer', Rule::exists('m_countries', 'country_id')],
+                'incorporationIsdCode'          => ['nullable', 'string', 'max:5'],
                 'lei'                           => ['nullable', 'string', 'size:20', $this->leiRule()],
                 'leiExpiryDate'                 => ['nullable', 'date'],
             ],
@@ -413,6 +741,7 @@ class FpiController extends Controller
                 'regAddressLine1' => ['required', 'string', 'max:150'],
                 'regAddressLine2' => ['required', 'string', 'max:150'],
                 'regAddressLine3' => ['required', 'string', 'max:150'],
+                'regAddressLine4' => ['nullable', 'string', 'max:100'],
                 'regCity'         => ['required', 'string', 'max:100'],
                 'regState'        => ['required', 'string', 'max:100'],
                 'regCountry'      => ['required', 'integer', Rule::exists('m_countries', 'country_id')],
@@ -422,26 +751,60 @@ class FpiController extends Controller
                 'commAddressLine1' => ['required_without:sameAddress', 'nullable', 'string', 'max:150'],
                 'commAddressLine2' => ['required_without:sameAddress', 'nullable', 'string', 'max:150'],
                 'commAddressLine3' => ['required_without:sameAddress', 'nullable', 'string', 'max:150'],
+                'commAddressLine4' => ['nullable', 'string', 'max:100'],
                 'commCity'        => ['required_without:sameAddress', 'nullable', 'string', 'max:100'],
                 'commState'       => ['required_without:sameAddress', 'nullable', 'string', 'max:100'],
                 'commCountry'     => ['required_without:sameAddress', 'nullable', 'integer', Rule::exists('m_countries', 'country_id')],
                 'commZip'         => ['required_without:sameAddress', 'nullable', 'string', 'max:20'],
-                // Contact — telephone optional, mobile + email required
-                'telNumber'       => ['nullable', 'string', 'max:20'],
+                // Office address — mandatory except lines 3 & 4
+                'offAddressLine1' => ['required', 'string', 'max:150'],
+                'offAddressLine2' => ['required', 'string', 'max:150'],
+                'offAddressLine3' => ['nullable', 'string', 'max:150'],
+                'offAddressLine4' => ['nullable', 'string', 'max:100'],
+                'offCity'         => ['required', 'string', 'max:100'],
+                'offState'        => ['required', 'string', 'max:100'],
+                'offCountry'      => ['required', 'integer', Rule::exists('m_countries', 'country_id')],
+                'offZip'          => ['required', 'string', 'max:20'],
+                // Contact — registered phone (all 3) + mobile + email required
+                'telIsdCode'      => ['required', 'string', 'max:5'],
+                'telAreaCode'     => ['required', 'string', 'max:10'],
+                'telNumber'       => ['required', 'string', 'max:20'],
+                'offTelIsdCode'   => ['nullable', 'string', 'max:5'],
+                'offTelAreaCode'  => ['nullable', 'string', 'max:10'],
+                'offTelNumber'    => ['nullable', 'string', 'max:20'],
                 'mobileNumber'    => ['required', 'string', 'max:20', $this->mobileRule()],
+                'faxNumber'       => ['nullable', 'string', 'max:20'],
+                'website'         => ['nullable', 'string', 'max:150'],
                 'email'           => ['required', 'email', 'max:100'],
             ],
             'ubo' => [
-                'hasUbos'      => ['required', Rule::in(['YES', 'NO'])],
-                'uboRowsJson'  => ['nullable', 'string'],
+                'hasSubFunds'      => ['required', Rule::in(['YES', 'NO'])],
+                'subFundsJson'     => ['nullable', 'string'],
+                // Any Intermediate/Controlling entity row added must have all its columns filled.
+                'intermediatesJson' => ['nullable', 'string', $this->allRowsFilled(['name', 'stakeType', 'chain', 'country', 'pct', 'type'], 'Intermediate Entity')],
+                'controllersJson'  => ['nullable', 'string', $this->allRowsFilled(['name', 'method', 'country', 'pct', 'type'], 'Controlling Entity')],
+                'hasUbos'          => ['required', Rule::in(['YES', 'NO'])],
+                'uboRowsJson'      => ['nullable', 'string'],
             ],
             'financial' => [
                 // Everything on this tab is mandatory except the Net Worth Date.
                 'incomeRange'  => ['required', Rule::in(['UNDER_50K', '50K_250K', '250K_1M', 'ABOVE_1M'])],
+                'incomeSourcesJson' => ['nullable', 'string'],
+                'grossIncome'  => ['nullable', 'numeric', 'min:0'],
+                'occupation'   => ['nullable', 'string', 'max:40'],
+                'professionCode' => ['nullable', 'string', 'max:2'],
                 'netWorth'     => ['required', 'numeric', 'min:0'],
                 'netWorthDate' => ['nullable', 'date'],
                 'taxCountry'   => ['required', 'string', 'max:100'],
                 'tin'          => ['required', 'string', 'max:50'],
+                'tinReason'    => ['nullable', 'string', 'max:40'],
+                'tinExplanation' => ['nullable', 'string', 'max:200'],
+                'trcNumber'    => ['nullable', 'string', 'max:50'],
+                'fatcaCrs'     => ['nullable', 'string', 'max:20'],
+                'isPep'        => ['nullable', 'string', 'max:5'],
+                'relatedToPep' => ['nullable', 'string', 'max:5'],
+                // Any additional tax-residency row added must have Country + TIN.
+                'taxResidenciesJson' => ['nullable', 'string', $this->allRowsFilled(['country', 'tin'], 'Tax Residency')],
             ],
             'category' => [
                 'fpiCategory'           => ['required', Rule::in(['CAT_I', 'CAT_II'])],
@@ -449,9 +812,15 @@ class FpiController extends Controller
                 'regulatorName'         => ['nullable', 'string', 'max:150'],
                 'licenseNumber'         => ['nullable', 'string', 'max:100'],
                 'regulatorJurisdiction' => ['nullable', 'string', 'max:100'],
+                // Any row added to these tables must have its key columns filled.
+                'investmentManagersJson' => ['nullable', 'string', $this->allRowsFilled(['name', 'sebiReg'], 'Investment Manager')],
+                'publicRetailJson'       => ['nullable', 'string', $this->allRowsFilled(['fpiName', 'fpiRegNo'], 'Public Retail Fund')],
+                'fpiGroupJson'           => ['nullable', 'string', $this->allRowsFilled(['fpiName', 'fpiRegNo'], 'Investor Group')],
+                'priorAssociationsJson'  => ['nullable', 'string', $this->allRowsFilled(['entity', 'associationType'], 'Prior Association')],
             ],
             'depository' => [
-                'pan'             => ['required', 'string', 'size:10', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]$/'],
+                'pan'             => ['nullable', 'required_if:hasPan,yes', 'string', 'size:10', 'regex:/^[A-Z]{5}[0-9]{4}[A-Z]$/'],
+                'existingpanName' => ['nullable', 'required_if:hasPan,yes', 'string', 'max:150'],
                 'bankName'        => ['required', 'string', 'max:150'],
                 'bankAccount'     => ['required', 'string', 'max:30'],
                 'bankAccountType' => ['required', Rule::in(['NRE', 'NRO', 'ESCROW'])],
@@ -465,6 +834,11 @@ class FpiController extends Controller
                 'primaryContactDesignation' => ['required', 'string', 'max:100'],
                 'investmentManagerName'     => ['nullable', 'string', 'max:150'],
                 'indiaPlaceOfBusiness'      => ['nullable', 'string', 'max:200'],
+                // Any row added to these tables must have every column filled.
+                'shareClassesJson'        => ['nullable', 'string', $this->allRowsFilled(['name'], 'Sub-Fund / Share Class')],
+                'categoryOneEntitiesJson' => ['nullable', 'string', $this->allRowsFilled(['name', 'country', 'entityType'], 'Eligible Category I Entity')],
+                'clientsJson'             => ['nullable', 'string', $this->allRowsFilled(['name', 'country', 'address', 'type'], 'Client')],
+                'signatoriesJson'         => ['nullable', 'string', $this->allRowsFilled(['name', 'relationship', 'pan', 'nationality', 'dob', 'address', 'govId'], 'Authorized Signatory')],
             ],
             'declarations' => [
                 'uploadedIncorpCert' => ['required', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
@@ -473,8 +847,91 @@ class FpiController extends Controller
                 'uploadedUboDecl'    => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:5120'],
                 'declarationAgreed'  => ['accepted'],
                 'signatureName'      => ['required', 'string', 'max:200'],
+                // Place / date / applicant + signatory details and all 3 declaration checkboxes.
+                'declarationPlace'     => ['required', 'string', 'max:100'],
+                'declarationDate'      => ['required', 'date'],
+                'applicantName'        => ['required', 'string', 'max:200'],
+                'applicantDesignation' => ['required', 'string', 'max:150'],
+                'authDesignation'      => ['required', 'string', 'max:150'],
+                'authDate'             => ['required', 'date'],
+                'declaration1'         => ['accepted'],
+                'declaration2'         => ['accepted'],
+                'declaration3'         => ['accepted'],
             ],
         ];
+
+        // Individual applicants use a personal-details Step 1 instead of the corporate one.
+        if ($this->isIndividual()) {
+            $rules['applicant'] = [
+                'indTitle'        => ['required', Rule::in(['Mr', 'Mrs', 'Ms'])],
+                'indFirstName'    => ['required', 'string', 'max:100'],
+                'indMiddleName'   => ['nullable', 'string', 'max:100'],
+                'indLastName'     => ['required', 'string', 'max:100'],
+                'indOtherName'    => ['required', Rule::in(['yes', 'no'])],
+                'indOtherTitle'     => ['nullable', 'required_if:indOtherName,yes', Rule::in(['Mr', 'Mrs', 'Ms', ''])],
+                'indOtherFirstName' => ['nullable', 'required_if:indOtherName,yes', 'string', 'max:100'],
+                'indOtherLastName'  => ['nullable', 'required_if:indOtherName,yes', 'string', 'max:100'],
+                'indDob'          => ['required', 'date', 'before_or_equal:today'],
+                'indPlaceOfBirth' => ['required', 'string', 'max:100'],
+                'indCountryOfBirth' => ['required', 'string', 'max:100'],
+                'indNationality'  => ['required', 'string', 'max:100'],
+                'indPassport'     => ['nullable', 'string', 'max:50'],
+                'indGender'       => ['required', 'string', 'max:20'],
+                'indMaritalStatus' => ['required', 'string', 'max:20'],
+                'indCitizenshipStatus' => ['required', 'string', 'max:40'],
+                'indCountryOfCitizenship' => ['required', 'string', 'max:100'],
+                'indFatherFirstName' => ['required', 'string', 'max:100'],
+                'indFatherLastName'  => ['required', 'string', 'max:100'],
+                'indMotherFirstName' => ['required', 'string', 'max:100'],
+                'indMotherLastName'  => ['required', 'string', 'max:100'],
+                'indSpouseFirstName' => ['required', 'string', 'max:100'],
+                'indSpouseLastName'  => ['required', 'string', 'max:100'],
+            ];
+
+            // Individual category tab: regulator, compliance officer (except fax),
+            // custodian / disciplinary / prior-association questions are mandatory;
+            // the Investment-Manager and Public-Retail table rows must be complete
+            // whenever a row has been added.
+            $rules['category'] = array_merge($rules['category'], [
+                'regulatorName'         => ['required', 'string', 'max:150'],
+                'licenseNumber'         => ['required', 'string', 'max:100'],
+                'regulatorJurisdiction' => ['required', 'string', 'max:100'],
+                'complianceName'        => ['required', 'string', 'max:150'],
+                'complianceTitle'       => ['required', 'string', 'max:100'],
+                'complianceEmail'       => ['required', 'email', 'max:100'],
+                'compliancePhone'       => ['required', 'string', 'max:30'],
+                'hasCustodian'          => ['required', Rule::in(['yes', 'no'])],
+                'disciplinaryHistory'   => ['required', Rule::in(['yes', 'no'])],
+                'priorAssociation'      => ['required', Rule::in(['yes', 'no'])],
+            ]);
+
+            // Individual financial tab: gross income, occupation and at least one
+            // source of income are mandatory.
+            $rules['financial'] = array_merge($rules['financial'], [
+                'grossIncome' => ['required', 'numeric', 'min:0'],
+                'occupation'  => ['required', 'string', 'max:40'],
+                'incomeSourcesJson' => ['required', 'string', function ($attr, $value, $fail) {
+                    $arr = json_decode($value ?? '[]', true);
+                    if (!is_array($arr) || count($arr) === 0) {
+                        $fail('Please select at least one source of income.');
+                    }
+                }],
+            ]);
+
+
+            // Individual depository tab: SWIFT/IFSC, custodian & DP details, and the
+            // PAN question are mandatory; when a PAN is held, both PAN fields too.
+            $rules['depository'] = array_merge($rules['depository'], [
+                'bankSwift'       => ['required', 'string', 'max:20'],
+                'custodianName'   => ['required', 'string', 'max:200'],
+                'dpId'            => ['required', 'string', 'max:20'],
+                'clientId'        => ['required', 'string', 'max:20'],
+                'hasPan'          => ['required', Rule::in(['yes', 'no'])],
+            ]);
+
+        }
+
+        return $rules;
     }
 
     /** Mobile number must start with one of our countries' ISD codes and have a valid length. */
@@ -552,6 +1009,9 @@ class FpiController extends Controller
             'dateOfCommencementOfBusiness.before_or_equal' => 'Date of Commencement of Business cannot be in the future.',
             'uboDob.before_or_equal'      => 'Date of Birth cannot be in the future.',
             'declarationAgreed.accepted'  => 'You must agree to the declaration before saving.',
+            'declaration1.accepted'       => 'Please tick this declaration.',
+            'declaration2.accepted'       => 'Please tick this declaration.',
+            'declaration3.accepted'       => 'Please tick this declaration.',
             'uboOwnership.between'        => 'Ownership % must be between 0 and 100.',
             'uploadedIncorpCert.required' => 'Certificate of Incorporation is required.',
             'uploadedPanCopy.required'    => 'Copy of Indian PAN Card is required.',
@@ -619,15 +1079,16 @@ class FpiController extends Controller
         );
 
         // Advance to the next tab on a successful save.
-        $idx = array_search($section, $this->order, true);
-        $next = ($idx !== false && isset($this->order[$idx + 1])) ? $this->order[$idx + 1] : $section;
+        $order = $this->order();
+        $idx = array_search($section, $order, true);
+        $next = ($idx !== false && isset($order[$idx + 1])) ? $order[$idx + 1] : $section;
         $msg = ($labels[$section] ?? 'Section') . ' saved successfully.';
 
         if ($request->wantsJson()) {
             return response()->json(['ok' => true, 'section' => $section, 'next' => $next, 'message' => $msg]);
         }
 
-        return redirect()->route('fpi.index')->with('status', $msg)->with('active_section', $next);
+        return redirect()->route($this->formRoute())->with('status', $msg)->with('active_section', $next);
     }
 
     /** Create small placeholder PDF documents (used by auto-fill only). */
@@ -681,7 +1142,7 @@ class FpiController extends Controller
             return (int) $id;
         }
         $id = DB::table('applicants')->insertGetId([
-            'entity_type'          => 'Non-Individual',
+            'entity_type'          => session('caf_entity_type', 'Non-Individual'),
             'pan_card_name_abbrev' => '(draft)',
             'application_status'   => 'DRAFT',
         ]);
@@ -689,11 +1150,15 @@ class FpiController extends Controller
         return (int) $id;
     }
 
-    /** Tab 1 -> applicants + corporate_applicant_details + applicant_aliases. */
+    /** Tab 1 -> applicants + corporate/individual details + aliases. */
     private function saveApplicantSection(Request $request, int $id): void
     {
+        if ($this->isIndividual()) {
+            $this->saveIndividualApplicant($request, $id);
+            return;
+        }
         DB::table('applicants')->where('applicant_id', $id)->update([
-            'entity_type'          => 'Non-Individual',
+            'entity_type'          => session('caf_entity_type', 'Non-Individual'),
             'pan_card_name_abbrev' => $request->input('entityName'),
         ]);
 
@@ -707,6 +1172,7 @@ class FpiController extends Controller
                 'date_commence_business'   => $request->input('dateOfCommencementOfBusiness') ?: null,
                 'place_of_incorporation'   => $request->input('placeOfIncorporation'),
                 'incorporation_country_id' => $request->input('countryOfIncorporation'),
+                'incorporation_isd_code'   => $request->input('incorporationIsdCode') ?: null,
                 'lei_number'               => $request->input('lei') ?: null,
                 'lei_expiry_date'          => $request->input('leiExpiryDate') ?: null,
             ]
@@ -720,6 +1186,34 @@ class FpiController extends Controller
                 'alias_last_name_or_company' => $request->input('otherEntityName'),
             ]);
         }
+    }
+
+    /** Individual Tab 1 -> applicants + all demographics into caf_extra_json['ind_applicant']. */
+    private function saveIndividualApplicant(Request $request, int $id): void
+    {
+        $name = trim(implode(' ', array_filter([
+            $request->input('indFirstName'), $request->input('indMiddleName'), $request->input('indLastName'),
+        ])));
+        DB::table('applicants')->where('applicant_id', $id)->update([
+            'entity_type'          => 'Individual',
+            'pan_card_name_abbrev' => $name !== '' ? $name : '(individual)',
+        ]);
+
+        $keys = [
+            'indTitle', 'indFirstName', 'indMiddleName', 'indLastName',
+            'indOtherName', 'indOtherTitle', 'indOtherFirstName', 'indOtherMiddleName', 'indOtherLastName',
+            'indDob', 'indPlaceOfBirth', 'indCountryOfBirth', 'indBirthIsd',
+            'indNationality', 'indNationalityIsd', 'indPassport',
+            'indGender', 'indMaritalStatus', 'indCitizenshipStatus', 'indCountryOfCitizenship',
+            'indFatherFirstName', 'indFatherMiddleName', 'indFatherLastName',
+            'indMotherFirstName', 'indMotherMiddleName', 'indMotherLastName',
+            'indSpouseFirstName', 'indSpouseMiddleName', 'indSpouseLastName',
+        ];
+        $data = [];
+        foreach ($keys as $k) {
+            $data[$k] = $request->input($k) ?: '';
+        }
+        $this->saveExtra($id, 'ind_applicant', $data);
     }
 
     /** Tab 3 -> applicants.ubo_structure_json (the ownership tree from the tool). */
@@ -747,6 +1241,7 @@ class FpiController extends Controller
                 'flat_room_block'       => $request->input('regAddressLine1'),
                 'premises_building'     => $request->input('regAddressLine2'),
                 'road_street_lane'      => $request->input('regAddressLine3'),
+                'area_locality_taluka'  => $request->input('regAddressLine4') ?: null,
                 'town_city_district'    => (string) $request->input('regCity'),
                 'state_union_territory' => (string) $request->input('regState'),
                 'pin_zip_code'          => (string) $request->input('regZip'),
@@ -761,6 +1256,7 @@ class FpiController extends Controller
                 'flat_room_block'       => $request->input('commAddressLine1'),
                 'premises_building'     => $request->input('commAddressLine2'),
                 'road_street_lane'      => $request->input('commAddressLine3'),
+                'area_locality_taluka'  => $request->input('commAddressLine4') ?: null,
                 'town_city_district'    => (string) $request->input('commCity'),
                 'state_union_territory' => (string) $request->input('commState'),
                 'pin_zip_code'          => (string) $request->input('commZip'),
@@ -768,14 +1264,46 @@ class FpiController extends Controller
             ]);
         }
 
-        DB::table('applicant_contacts')->where('applicant_id', $id)->where('contact_type', 'Residence')->delete();
+        // Office address (reference Step 2 second address block).
+        if ($request->filled('offCountry')) {
+            DB::table('applicant_addresses')->insert([
+                'applicant_id'          => $id,
+                'address_type'          => 'Office',
+                'is_communication_dest' => 0,
+                'flat_room_block'       => $request->input('offAddressLine1'),
+                'premises_building'     => $request->input('offAddressLine2'),
+                'road_street_lane'      => $request->input('offAddressLine3'),
+                'area_locality_taluka'  => $request->input('offAddressLine4') ?: null,
+                'town_city_district'    => (string) $request->input('offCity'),
+                'state_union_territory' => (string) $request->input('offState'),
+                'pin_zip_code'          => (string) $request->input('offZip'),
+                'country_id'            => $request->input('offCountry'),
+            ]);
+        }
+
+        DB::table('applicant_contacts')->where('applicant_id', $id)->whereIn('contact_type', ['Residence', 'Office'])->delete();
         DB::table('applicant_contacts')->insert([
-            'applicant_id'     => $id,
-            'contact_type'     => 'Residence',
-            'telephone_number' => $request->input('telNumber') ? substr($request->input('telNumber'), 0, 20) : null,
-            'mobile_number'    => $request->input('mobileNumber') ? substr($request->input('mobileNumber'), 0, 20) : null,
-            'email_id'         => $request->input('email') ?: null,
+            'applicant_id'      => $id,
+            'contact_type'      => 'Residence',
+            'tel_isd_code'      => $request->input('telIsdCode') ? substr($request->input('telIsdCode'), 0, 5) : null,
+            'tel_std_area_code' => $request->input('telAreaCode') ? substr($request->input('telAreaCode'), 0, 10) : null,
+            'telephone_number'  => $request->input('telNumber') ? substr($request->input('telNumber'), 0, 20) : null,
+            'mobile_number'     => $request->input('mobileNumber') ? substr($request->input('mobileNumber'), 0, 20) : null,
+            'fax_number'        => $request->input('faxNumber') ? substr($request->input('faxNumber'), 0, 20) : null,
+            'website'           => $request->input('website') ? substr($request->input('website'), 0, 150) : null,
+            'email_id'          => $request->input('email') ?: null,
         ]);
+
+        // Office phone (reference Step 2 second phone block).
+        if ($request->filled('offTelNumber') || $request->filled('offTelIsdCode')) {
+            DB::table('applicant_contacts')->insert([
+                'applicant_id'      => $id,
+                'contact_type'      => 'Office',
+                'tel_isd_code'      => $request->input('offTelIsdCode') ? substr($request->input('offTelIsdCode'), 0, 5) : null,
+                'tel_std_area_code' => $request->input('offTelAreaCode') ? substr($request->input('offTelAreaCode'), 0, 10) : null,
+                'telephone_number'  => $request->input('offTelNumber') ? substr($request->input('offTelNumber'), 0, 20) : null,
+            ]);
+        }
     }
 
     /** Validate the JSON list of UBO rows; returns an error string or null. */
@@ -802,6 +1330,19 @@ class FpiController extends Controller
     /** Tab 4 -> ubo (1:N). Multiple UBO rows carried from the determination tool. */
     private function saveUboSection(Request $request, int $id): void
     {
+        // Sub-funds, intermediate & controlling entities (variable-shape) as one JSON doc.
+        $subFunds     = json_decode($request->input('subFundsJson') ?? '[]', true);
+        $intermediates = json_decode($request->input('intermediatesJson') ?? '[]', true);
+        $controllers   = json_decode($request->input('controllersJson') ?? '[]', true);
+        DB::table('applicants')->where('applicant_id', $id)->update([
+            'beneficial_ownership_json' => json_encode([
+                'hasSubFunds'   => $request->input('hasSubFunds'),
+                'subFunds'      => is_array($subFunds) ? array_values($subFunds) : [],
+                'intermediates' => is_array($intermediates) ? array_values($intermediates) : [],
+                'controllers'   => is_array($controllers) ? array_values($controllers) : [],
+            ]),
+        ]);
+
         DB::table('ubo')->where('applicant_id', $id)->delete();
         if ($request->input('hasUbos') !== 'YES') {
             return;
@@ -820,7 +1361,9 @@ class FpiController extends Controller
                 'full_name'                   => $r['name'],
                 'residential_address'         => $r['address'] ?? '',
                 'date_of_birth'               => !empty($r['dob']) ? $r['dob'] : null,
+                'tax_residency_country_id'    => !empty($r['taxJurisdiction']) ? (int) $r['taxJurisdiction'] : null,
                 'nationality_country_id'      => !empty($r['nationality']) ? (int) $r['nationality'] : null,
+                'acting_group_details'        => $r['actingGroup'] ?? null,
                 'shareholding_capital_pct'    => ($r['ownership'] ?? '') !== '' ? $r['ownership'] : null,
                 'id_document_type'            => !empty($r['passport']) ? 'Passport' : null,
                 'id_document_number'          => $r['passport'] ?? null,
@@ -832,10 +1375,27 @@ class FpiController extends Controller
     private function saveFinancialSection(Request $request, int $id): void
     {
         DB::table('applicants')->where('applicant_id', $id)->update([
-            'net_worth_inr'           => $request->input('netWorth') ?: null,
-            'net_worth_date'          => $request->input('netWorthDate') ?: null,
+            'net_worth_inr'            => $request->input('netWorth') ?: null,
+            'net_worth_date'           => $request->input('netWorthDate') ?: null,
             'gross_annual_income_band' => $request->input('incomeRange') ?: null,
+            'gross_annual_income_inr'  => $request->input('grossIncome') ?: null,
         ]);
+
+        // Reference extras with no clean normalized home / unseeded FK masters.
+        $this->saveExtra($id, 'financial', [
+            'incomeSources'  => $this->jsonArray($request, 'incomeSourcesJson'),
+            'professionCode' => $request->input('professionCode') ?: '',
+            'occupation'     => $request->input('occupation') ?: '',
+            'tinReason'      => $request->input('tinReason') ?: '',
+            'tinExplanation' => $request->input('tinExplanation') ?: '',
+            'trcNumber'      => $request->input('trcNumber') ?: '',
+            'fatcaCrs'       => $request->input('fatcaCrs') ?: '',
+            'isPep'          => $request->input('isPep') ?: '',
+            'relatedToPep'   => $request->input('relatedToPep') ?: '',
+            'taxResidenciesData' => $this->jsonArray($request, 'taxResidenciesJson'),
+        ]);
+
+        $taxResidencies = $this->jsonArray($request, 'taxResidenciesJson');
 
         DB::table('tax_residencies')->where('applicant_id', $id)->delete();
         if ($request->filled('taxCountry')) {
@@ -844,6 +1404,16 @@ class FpiController extends Controller
                 'country_id'   => $request->input('taxCountry'),
                 'trc_number'   => (string) $request->input('tin'),
             ]);
+        }
+        // Additional tax residencies (reference "Add More Tax Residency").
+        foreach ($taxResidencies as $tr) {
+            if (!empty($tr['country'])) {
+                DB::table('tax_residencies')->insert([
+                    'applicant_id' => $id,
+                    'country_id'   => (int) $tr['country'],
+                    'trc_number'   => (string) ($tr['trc'] ?? $tr['tin'] ?? ''),
+                ]);
+            }
         }
     }
 
@@ -864,6 +1434,33 @@ class FpiController extends Controller
                 'regulatory_country_id'      => $request->input('regulatorJurisdiction') ?: null,
             ]);
         }
+
+        $this->saveExtra($id, 'category', [
+            'subCategory'            => $request->input('subCategory') ?: '',
+            'mimStructure'           => $request->input('mimStructure') ?: '',
+            'investmentManagersData' => $this->jsonArray($request, 'investmentManagersJson'),
+            'regulatorWebsite'       => $request->input('regulatorWebsite') ?: '',
+            'regulatorCapacity'      => $request->input('regulatorCapacity') ?: '',
+            'complianceName'         => $request->input('complianceName') ?: '',
+            'complianceTitle'        => $request->input('complianceTitle') ?: '',
+            'complianceEmail'        => $request->input('complianceEmail') ?: '',
+            'compliancePhone'        => $request->input('compliancePhone') ?: '',
+            'complianceFax'          => $request->input('complianceFax') ?: '',
+            'hasCustodian'           => $request->input('hasCustodian') ?: '',
+            'custodianNameCat'       => $request->input('custodianNameCat') ?: '',
+            'custodianReg'           => $request->input('custodianReg') ?: '',
+            'custRegCode'            => $request->input('custRegCode') ?: '',
+            'custodianAddress'       => $request->input('custodianAddress') ?: '',
+            'disciplinaryHistory'    => $request->input('disciplinaryHistory') ?: '',
+            'disciplinaryDetails'    => $request->input('disciplinaryDetails') ?: '',
+            'clubbingDeclaration'    => $request->input('clubbingDeclaration') ?: '',
+            'fpiGroupNumber'         => $request->input('fpiGroupNumber') ?: '',
+            'groupNumber'            => $request->input('groupNumber') ?: '',
+            'fpiGroupData'           => $this->jsonArray($request, 'fpiGroupJson'),
+            'publicRetailData'       => $this->jsonArray($request, 'publicRetailJson'),
+            'priorAssociation'       => $request->input('priorAssociation') ?: '',
+            'priorAssociationsData'  => $this->jsonArray($request, 'priorAssociationsJson'),
+        ]);
     }
 
     /** Tab 7 -> pan_additional_details + depository_bank_accounts + office_verification + custodian. */
@@ -892,6 +1489,34 @@ class FpiController extends Controller
                 ['global_custodian_name' => $request->input('custodianName')]
             );
         }
+
+        $this->saveExtra($id, 'depository', [
+            'hasPan'             => $request->input('hasPan') ?: '',
+            'existingpanName'    => $request->input('existingpanName') ?: '',
+            'statusApplicant'    => $request->input('statusApplicant') ?: '',
+            'panName'            => $request->input('panName') ?: '',
+            'aoAreaCode'         => $request->input('aoAreaCode') ?: '',
+            'aoType'             => $request->input('aoType') ?: '',
+            'aoRangeCode'        => $request->input('aoRangeCode') ?: '',
+            'aoNo'               => $request->input('aoNo') ?: '',
+            'registrationNumber' => $request->input('registrationNumber') ?: '',
+            'repTitle'           => $request->input('repTitle') ?: '',
+            'repLastName'        => $request->input('repLastName') ?: '',
+            'repFirstName'       => $request->input('repFirstName') ?: '',
+            'repMiddleName'      => $request->input('repMiddleName') ?: '',
+            'repAddress'         => $request->input('repAddress') ?: '',
+            'listed'             => $request->input('listed') ?: '',
+            'exchangeName'       => $request->input('exchangeName') ?: '',
+            'poiType'            => $request->input('poiType') ?: '',
+            'poiNumber'          => $request->input('poiNumber') ?: '',
+            'poaType'            => $request->input('poaType') ?: '',
+            'poaNumber'          => $request->input('poaNumber') ?: '',
+            'sensitiveActivities' => $this->jsonArray($request, 'sensitiveActivitiesJson'),
+            'depositoryAuth'     => $request->input('depositoryAuth') ?: '',
+            'modeOfOperation'    => $request->input('modeOfOperation') ?: '',
+            'otherMode'          => $request->input('otherMode') ?: '',
+            'bankAuth'           => $request->input('bankAuth') ?: '',
+        ]);
     }
 
     /** Tab 8 -> applicant_contacts (Compliance) + investment_managers + corporate india place. */
@@ -918,6 +1543,33 @@ class FpiController extends Controller
         // india_place_of_business lives on the corporate row (updated only if it exists).
         DB::table('corporate_applicant_details')->where('applicant_id', $id)
             ->update(['india_place_of_business' => $request->input('indiaPlaceOfBusiness') ?: null]);
+
+        $this->saveExtra($id, 'additional', [
+            'odiDerivatives'          => $request->input('odiDerivatives') ?: '',
+            'shareClassesData'        => $this->jsonArray($request, 'shareClassesJson'),
+            'categoryOneEntitiesData' => $this->jsonArray($request, 'categoryOneEntitiesJson'),
+            'bankDeclaration'         => $request->input('bankDeclaration') ?: '',
+            'bankEntityName'          => $request->input('bankEntityName') ?: '',
+            'nriControl1'             => $request->input('nriControl1') ?: '',
+            'nriControl2'             => $request->input('nriControl2') ?: '',
+            'imTypes'                 => $this->jsonArray($request, 'imTypesJson'),
+            'directlyControlled'      => $request->input('directlyControlled') ?: '',
+            'nriControlEntityName'    => $request->input('nriControlEntityName') ?: '',
+            'offshoreFund'            => $request->input('offshoreFund') ?: '',
+            'nriEntitlement'          => $request->input('nriEntitlement') ?: '',
+            'reg5b7'                  => $request->input('reg5b7') ?: '',
+            'clientEligI'             => $request->boolean('clientEligI'),
+            'clientEligII'            => $request->boolean('clientEligII'),
+            'clientEligIII'           => $request->boolean('clientEligIII'),
+            'clientsData'             => $this->jsonArray($request, 'clientsJson'),
+            'kraConsent'              => $request->input('kraConsent') ?: '',
+            'kraRepName'              => $request->input('kraRepName') ?: '',
+            'kraEmail1'               => $request->input('kraEmail1') ?: '',
+            'kraEmail2'               => $request->input('kraEmail2') ?: '',
+            'kraEmail3'               => $request->input('kraEmail3') ?: '',
+            'kraMobile'               => $request->input('kraMobile') ?: '',
+            'signatoriesData'         => $this->jsonArray($request, 'signatoriesJson'),
+        ]);
     }
 
     /** Tab 9 -> application_declaration + kyc_documents (files). */
@@ -961,5 +1613,50 @@ class FpiController extends Controller
                 'is_verified'      => 0,
             ]);
         }
+
+        // Additional reference uploads with no dedicated document type — stored to disk,
+        // filenames recorded in the extra document. Merge into any existing declarations slice.
+        $extra = $this->loadExtra($id)['declarations'] ?? [];
+        $extraDocs = ['uploadedPoi' => 'POI', 'uploadedPoa' => 'POA', 'uploadedFatca' => 'FATCA', 'uploadedSignature' => 'SIGNATURE'];
+        foreach ($extraDocs as $field => $code) {
+            if (!$request->hasFile($field)) {
+                continue;
+            }
+            $original = $request->file($field)->getClientOriginalName();
+            $dir = public_path("uploads/kyc/{$id}/{$code}");
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            $request->file($field)->move($dir, $original);
+            $extra[$field] = $original;
+            $extra[$field . '_uri'] = "uploads/kyc/{$id}/{$code}/{$original}";
+        }
+
+        // Any other supporting documents (multiple).
+        if ($request->hasFile('otherDocs')) {
+            $names = (array) ($extra['otherDocs'] ?? []);
+            $dir = public_path("uploads/kyc/{$id}/OTHER");
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            foreach ((array) $request->file('otherDocs') as $file) {
+                $original = $file->getClientOriginalName();
+                $file->move($dir, $original);
+                $names[] = $original;
+            }
+            $extra['otherDocs'] = array_values(array_unique($names));
+        }
+
+        $this->saveExtra($id, 'declarations', array_merge($extra, [
+            'declarationPlace'     => $request->input('declarationPlace') ?: '',
+            'declarationDate'      => $request->input('declarationDate') ?: '',
+            'applicantName'        => $request->input('applicantName') ?: '',
+            'applicantDesignation' => $request->input('applicantDesignation') ?: '',
+            'authDesignation'      => $request->input('authDesignation') ?: '',
+            'authDate'             => $request->input('authDate') ?: '',
+            'declaration1'         => $request->boolean('declaration1'),
+            'declaration2'         => $request->boolean('declaration2'),
+            'declaration3'         => $request->boolean('declaration3'),
+        ]));
     }
 }
