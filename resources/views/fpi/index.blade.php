@@ -75,6 +75,9 @@ $faqs = [
 
 // Simple array for the JS layer (avoids @json parsing an inline arrow fn).
 $stepsJs = array_map(fn ($s) => ['id' => $s['id'], 'title' => $s['title'], 'tab' => $s['tab']], $steps);
+// Precomputed here (not inside <script>) so an editor JS-formatter can't mangle the `->` operators.
+$uboCountriesJs = $countries->map(fn ($c) => ['id' => (string) $c->country_id, 'label' => $c->label_en])->values();
+$serverErrorsJs = $errors->messages();
 @endphp
 
 @push('styles')
@@ -1374,7 +1377,7 @@ $stepsJs = array_map(fn ($s) => ['id' => $s['id'], 'title' => $s['title'], 'tab'
         const uboRowsContainer = document.getElementById('uboRowsContainer');
         const uboRowsJsonField = document.getElementById('uboRowsJsonField');
         const uboEmptyNote = document.getElementById('uboEmptyNote');
-        const UBO_COUNTRIES = @json($countries - > map(fn($c) => ['id' => (string) $c - > country_id, 'label' => $c - > label_en]) - > values());
+        const UBO_COUNTRIES = @json($uboCountriesJs);
         const TODAY = @json(date('Y-m-d'));
         let uboRows = @json($uboList ?? []); // [{name,dob,nationality,passport,ownership,address}]
 
@@ -3247,7 +3250,7 @@ $stepsJs = array_map(fn ($s) => ['id' => $s['id'], 'title' => $s['title'], 'tab'
         }
 
         // ── Render server-side validation errors returned after a failed submit ──
-        const serverErrors = @json($errors - > messages());
+        const serverErrors = @json($serverErrorsJs);
         if (Object.keys(serverErrors).length) {
             const errs = Object.entries(serverErrors).map(([name, msgs]) => ({
                 name,
