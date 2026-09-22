@@ -196,7 +196,7 @@
 <body>
   <header class="app-topbar">
     <div class="brand">
-      <img src="{{ asset('logo.png') }}" alt="Facilon" class="brand-logo">
+      <a href="{{ route('fpi.start') }}" title="Home"><img src="{{ asset('logo.png') }}" alt="Facilon" class="brand-logo" style="display:block"></a>
       <div class="brand-divider"></div>
       <span class="brand-tag">Investor Console</span>
     </div>
