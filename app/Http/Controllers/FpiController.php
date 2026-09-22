@@ -21,14 +21,35 @@ class FpiController extends Controller
         // normal default selection (unchanged).
         return [
             // Individual applicant (Step 1) — persisted via caf_extra_json['ind_applicant']
-            'indTitle' => '', 'indFirstName' => '', 'indMiddleName' => '', 'indLastName' => '',
-            'indOtherName' => '', 'indOtherTitle' => '', 'indOtherFirstName' => '', 'indOtherMiddleName' => '', 'indOtherLastName' => '',
-            'indDob' => '', 'indPlaceOfBirth' => '', 'indCountryOfBirth' => '', 'indBirthIsd' => '',
-            'indNationality' => '', 'indNationalityIsd' => '', 'indPassport' => '',
-            'indGender' => '', 'indMaritalStatus' => '', 'indCitizenshipStatus' => '', 'indCountryOfCitizenship' => '',
-            'indFatherFirstName' => '', 'indFatherMiddleName' => '', 'indFatherLastName' => '',
-            'indMotherFirstName' => '', 'indMotherMiddleName' => '', 'indMotherLastName' => '',
-            'indSpouseFirstName' => '', 'indSpouseMiddleName' => '', 'indSpouseLastName' => '',
+            'indTitle' => '',
+            'indFirstName' => '',
+            'indMiddleName' => '',
+            'indLastName' => '',
+            'indOtherName' => '',
+            'indOtherTitle' => '',
+            'indOtherFirstName' => '',
+            'indOtherMiddleName' => '',
+            'indOtherLastName' => '',
+            'indDob' => '',
+            'indPlaceOfBirth' => '',
+            'indCountryOfBirth' => '',
+            'indBirthIsd' => '',
+            'indNationality' => '',
+            'indNationalityIsd' => '',
+            'indPassport' => '',
+            'indGender' => '',
+            'indMaritalStatus' => '',
+            'indCitizenshipStatus' => '',
+            'indCountryOfCitizenship' => '',
+            'indFatherFirstName' => '',
+            'indFatherMiddleName' => '',
+            'indFatherLastName' => '',
+            'indMotherFirstName' => '',
+            'indMotherMiddleName' => '',
+            'indMotherLastName' => '',
+            'indSpouseFirstName' => '',
+            'indSpouseMiddleName' => '',
+            'indSpouseLastName' => '',
             'nameTitle' => '',
             'entityName' => '',
             'applicantType' => '',
@@ -207,10 +228,14 @@ class FpiController extends Controller
             'declaration1' => false,
             'declaration2' => false,
             'declaration3' => false,
-            'uploadedPoi' => '', 'uploadedPoi_uri' => '',
-            'uploadedPoa' => '', 'uploadedPoa_uri' => '',
-            'uploadedFatca' => '', 'uploadedFatca_uri' => '',
-            'uploadedSignature' => '', 'uploadedSignature_uri' => '',
+            'uploadedPoi' => '',
+            'uploadedPoi_uri' => '',
+            'uploadedPoa' => '',
+            'uploadedPoa_uri' => '',
+            'uploadedFatca' => '',
+            'uploadedFatca_uri' => '',
+            'uploadedSignature' => '',
+            'uploadedSignature_uri' => '',
             'otherDocs' => [],
             'uploadedIncorpCert' => '',
             'uploadedLeiProof' => '',
@@ -237,8 +262,10 @@ class FpiController extends Controller
     {
         $request->validate(
             ['entityType' => ['required', Rule::in(['Individual', 'Non-Individual'])]],
-            ['entityType.required' => 'Please select an applicant type to continue.',
-             'entityType.in'       => 'Please select a valid applicant type.']
+            [
+                'entityType.required' => 'Please select an applicant type to continue.',
+                'entityType.in'       => 'Please select a valid applicant type.'
+            ]
         );
 
         // Start a fresh application for the chosen kind.
@@ -295,7 +322,7 @@ class FpiController extends Controller
         // Beneficial-ownership rows for the current applicant (drives Tab 4 rows).
         $uboList = [];
         if ($applicantId) {
-            $uboList = DB::table('ubo')->where('applicant_id', $applicantId)->orderBy('ubo_id')->get()->map(fn ($u) => [
+            $uboList = DB::table('ubo')->where('applicant_id', $applicantId)->orderBy('ubo_id')->get()->map(fn($u) => [
                 'name'           => $u->full_name,
                 'dob'            => $u->date_of_birth,
                 'taxJurisdiction' => (string) ($u->tax_residency_country_id ?? ''),
@@ -361,7 +388,7 @@ class FpiController extends Controller
             'ims'         => DB::table('investment_managers')->where('applicant_id', $id)->get(),
             'declaration' => DB::table('application_declaration')->where('applicant_id', $id)->first(),
             'docs'        => DB::table('kyc_documents')->join('m_document_types', 'kyc_documents.doc_type_id', '=', 'm_document_types.doc_type_id')
-                                ->where('kyc_documents.applicant_id', $id)->get(['m_document_types.label_en', 'kyc_documents.file_storage_uri']),
+                ->where('kyc_documents.applicant_id', $id)->get(['m_document_types.label_en', 'kyc_documents.file_storage_uri']),
             'countries'   => $countries,
             'catLabels'   => $catLabels,
             'titleMap'    => $this->codeToTitle,
@@ -447,11 +474,15 @@ class FpiController extends Controller
         $missing = array_diff($required, $done);
         if ($missing) {
             $labels = [
-                'applicant' => 'Applicant Profile', 'contact' => 'Contact & Address', 'ubo' => 'Beneficial Ownership',
-                'financial' => 'Financial & Tax', 'category' => 'Category & Regulatory',
-                'depository' => 'PAN, Bank & Depository', 'declarations' => 'Final Declarations',
+                'applicant' => 'Applicant Profile',
+                'contact' => 'Contact & Address',
+                'ubo' => 'Beneficial Ownership',
+                'financial' => 'Financial & Tax',
+                'category' => 'Category & Regulatory',
+                'depository' => 'PAN, Bank & Depository',
+                'declarations' => 'Final Declarations',
             ];
-            $names = implode(', ', array_map(fn ($s) => $labels[$s] ?? $s, $missing));
+            $names = implode(', ', array_map(fn($s) => $labels[$s] ?? $s, $missing));
             $m = "Please complete & save these sections before submitting: {$names}.";
             return $request->wantsJson()
                 ? response()->json(['ok' => false, 'message' => $m], 422)
@@ -501,7 +532,7 @@ class FpiController extends Controller
 
     private function isdCodes(): array
     {
-        return DB::table('m_countries')->where('is_active', true)->pluck('isd_code')->map(fn ($c) => (string) $c)->toArray();
+        return DB::table('m_countries')->where('is_active', true)->pluck('isd_code')->map(fn($c) => (string) $c)->toArray();
     }
 
     /** Sections marked complete in application_section_progress (drives the green tab check). */
@@ -588,17 +619,24 @@ class FpiController extends Controller
             ->where('address_type', 'Registered_Residence')->orderBy('address_id')->get();
         if ($addrs->count()) {
             $reg = $addrs[0];
-            $out['regAddressLine1'] = $reg->flat_room_block; $out['regAddressLine2'] = $reg->premises_building;
-            $out['regAddressLine3'] = $reg->road_street_lane; $out['regAddressLine4'] = $reg->area_locality_taluka;
+            $out['regAddressLine1'] = $reg->flat_room_block;
+            $out['regAddressLine2'] = $reg->premises_building;
+            $out['regAddressLine3'] = $reg->road_street_lane;
+            $out['regAddressLine4'] = $reg->area_locality_taluka;
             $out['regCity'] = $reg->town_city_district;
-            $out['regState'] = $reg->state_union_territory; $out['regZip'] = $reg->pin_zip_code;
+            $out['regState'] = $reg->state_union_territory;
+            $out['regZip'] = $reg->pin_zip_code;
             $out['regCountry'] = (string) $reg->country_id;
             if ($addrs->count() > 1) {
-                $comm = $addrs[1]; $out['sameAddress'] = false;
-                $out['commAddressLine1'] = $comm->flat_room_block; $out['commAddressLine2'] = $comm->premises_building;
-                $out['commAddressLine3'] = $comm->road_street_lane; $out['commAddressLine4'] = $comm->area_locality_taluka;
+                $comm = $addrs[1];
+                $out['sameAddress'] = false;
+                $out['commAddressLine1'] = $comm->flat_room_block;
+                $out['commAddressLine2'] = $comm->premises_building;
+                $out['commAddressLine3'] = $comm->road_street_lane;
+                $out['commAddressLine4'] = $comm->area_locality_taluka;
                 $out['commCity'] = $comm->town_city_district;
-                $out['commState'] = $comm->state_union_territory; $out['commZip'] = $comm->pin_zip_code;
+                $out['commState'] = $comm->state_union_territory;
+                $out['commZip'] = $comm->pin_zip_code;
                 $out['commCountry'] = (string) $comm->country_id;
             } else {
                 $out['sameAddress'] = (bool) $reg->is_communication_dest;
@@ -606,21 +644,29 @@ class FpiController extends Controller
         }
         $office = DB::table('applicant_addresses')->where('applicant_id', $applicantId)->where('address_type', 'Office')->orderBy('address_id')->first();
         if ($office) {
-            $out['offAddressLine1'] = $office->flat_room_block; $out['offAddressLine2'] = $office->premises_building;
-            $out['offAddressLine3'] = $office->road_street_lane; $out['offAddressLine4'] = $office->area_locality_taluka;
-            $out['offCity'] = $office->town_city_district; $out['offState'] = $office->state_union_territory;
-            $out['offZip'] = $office->pin_zip_code; $out['offCountry'] = (string) $office->country_id;
+            $out['offAddressLine1'] = $office->flat_room_block;
+            $out['offAddressLine2'] = $office->premises_building;
+            $out['offAddressLine3'] = $office->road_street_lane;
+            $out['offAddressLine4'] = $office->area_locality_taluka;
+            $out['offCity'] = $office->town_city_district;
+            $out['offState'] = $office->state_union_territory;
+            $out['offZip'] = $office->pin_zip_code;
+            $out['offCountry'] = (string) $office->country_id;
         }
         $resContact = DB::table('applicant_contacts')->where('applicant_id', $applicantId)->where('contact_type', 'Residence')->first();
         if ($resContact) {
-            $out['telIsdCode'] = $resContact->tel_isd_code; $out['telAreaCode'] = $resContact->tel_std_area_code;
-            $out['telNumber'] = $resContact->telephone_number; $out['mobileNumber'] = $resContact->mobile_number;
-            $out['faxNumber'] = $resContact->fax_number; $out['website'] = $resContact->website;
+            $out['telIsdCode'] = $resContact->tel_isd_code;
+            $out['telAreaCode'] = $resContact->tel_std_area_code;
+            $out['telNumber'] = $resContact->telephone_number;
+            $out['mobileNumber'] = $resContact->mobile_number;
+            $out['faxNumber'] = $resContact->fax_number;
+            $out['website'] = $resContact->website;
             $out['email'] = $resContact->email_id;
         }
         $offContact = DB::table('applicant_contacts')->where('applicant_id', $applicantId)->where('contact_type', 'Office')->first();
         if ($offContact) {
-            $out['offTelIsdCode'] = $offContact->tel_isd_code; $out['offTelAreaCode'] = $offContact->tel_std_area_code;
+            $out['offTelIsdCode'] = $offContact->tel_isd_code;
+            $out['offTelAreaCode'] = $offContact->tel_std_area_code;
             $out['offTelNumber'] = $offContact->telephone_number;
         }
 
@@ -649,7 +695,8 @@ class FpiController extends Controller
 
         // Tab 5 — Financial & Tax
         if ($app) {
-            $out['netWorth'] = $app->net_worth_inr; $out['netWorthDate'] = $app->net_worth_date;
+            $out['netWorth'] = $app->net_worth_inr;
+            $out['netWorthDate'] = $app->net_worth_date;
             $out['incomeRange'] = $app->gross_annual_income_band ?? '';
             $out['fpiCategory'] = $app->fpi_category_code ?? '';
             if ($app->fpi_category_code !== null) {
@@ -657,33 +704,51 @@ class FpiController extends Controller
             }
         }
         $tax = DB::table('tax_residencies')->where('applicant_id', $applicantId)->first();
-        if ($tax) { $out['taxCountry'] = (string) $tax->country_id; $out['tin'] = $tax->trc_number; }
+        if ($tax) {
+            $out['taxCountry'] = (string) $tax->country_id;
+            $out['tin'] = $tax->trc_number;
+        }
 
         // Tab 6 — Category & Regulatory
         $reg = DB::table('applicant_foreign_regulators')->where('applicant_id', $applicantId)->first();
         if ($reg) {
-            $out['regulatorName'] = $reg->regulatory_authority_name; $out['licenseNumber'] = $reg->regulatory_registration_no;
+            $out['regulatorName'] = $reg->regulatory_authority_name;
+            $out['licenseNumber'] = $reg->regulatory_registration_no;
             $out['regulatorJurisdiction'] = (string) ($reg->regulatory_country_id ?? '');
         }
 
         // Tab 7 — PAN, Bank & Depository
         $pan = DB::table('pan_additional_details')->where('applicant_id', $applicantId)->first();
-        if ($pan) { $out['pan'] = $pan->existing_pan; }
+        if ($pan) {
+            $out['pan'] = $pan->existing_pan;
+        }
         $bank = DB::table('depository_bank_accounts')->where('applicant_id', $applicantId)->first();
-        if ($bank) { $out['bankName'] = $bank->ad_category_1_bank_name; $out['bankSwift'] = $bank->bank_swift_ifsc; }
+        if ($bank) {
+            $out['bankName'] = $bank->ad_category_1_bank_name;
+            $out['bankSwift'] = $bank->bank_swift_ifsc;
+        }
         $office = DB::table('office_verification')->where('applicant_id', $applicantId)->first();
         if ($office) {
-            $out['bankAccount'] = $office->bank_account_number; $out['bankAccountType'] = $office->bank_account_type;
-            $out['dpId'] = $office->dp_id; $out['clientId'] = $office->client_id;
+            $out['bankAccount'] = $office->bank_account_number;
+            $out['bankAccountType'] = $office->bank_account_type;
+            $out['dpId'] = $office->dp_id;
+            $out['clientId'] = $office->client_id;
         }
         $cust = DB::table('applicant_custodian_details')->where('applicant_id', $applicantId)->first();
-        if ($cust) { $out['custodianName'] = $cust->global_custodian_name; }
+        if ($cust) {
+            $out['custodianName'] = $cust->global_custodian_name;
+        }
 
         // Tab 8 — Additional Info
         $compContact = DB::table('applicant_contacts')->where('applicant_id', $applicantId)->where('contact_type', 'Compliance')->first();
-        if ($compContact) { $out['primaryContactName'] = $compContact->officer_name; $out['primaryContactDesignation'] = $compContact->job_title; }
+        if ($compContact) {
+            $out['primaryContactName'] = $compContact->officer_name;
+            $out['primaryContactDesignation'] = $compContact->job_title;
+        }
         $im = DB::table('investment_managers')->where('applicant_id', $applicantId)->first();
-        if ($im) { $out['investmentManagerName'] = $im->manager_name; }
+        if ($im) {
+            $out['investmentManagerName'] = $im->manager_name;
+        }
 
         // Tab 9 — Declarations
         $decl = DB::table('application_declaration')->where('applicant_id', $applicantId)->first();
@@ -714,7 +779,7 @@ class FpiController extends Controller
         }
 
         // Drop nulls so form defaults ('') apply cleanly.
-        return array_filter($out, fn ($v) => $v !== null);
+        return array_filter($out, fn($v) => $v !== null);
     }
 
     /** Validation rules grouped per section (tab). */
@@ -928,7 +993,6 @@ class FpiController extends Controller
                 'clientId'        => ['required', 'string', 'max:20'],
                 'hasPan'          => ['required', Rule::in(['yes', 'no'])],
             ]);
-
         }
 
         return $rules;
@@ -943,13 +1007,16 @@ class FpiController extends Controller
                 return;
             }
             $codes = $this->isdCodes();
-            usort($codes, fn ($a, $b) => strlen($b) - strlen($a)); // longest prefix first
+            usort($codes, fn($a, $b) => strlen($b) - strlen($a)); // longest prefix first
             $match = null;
             foreach ($codes as $c) {
-                if (str_starts_with($digits, $c)) { $match = $c; break; }
+                if (str_starts_with($digits, $c)) {
+                    $match = $c;
+                    break;
+                }
             }
             if ($match === null) {
-                $fail('Mobile number must start with a valid country dialing code (' . implode(', ', array_map(fn ($c) => "+$c", $this->isdCodes())) . ').');
+                $fail('Mobile number must start with a valid country dialing code (' . implode(', ', array_map(fn($c) => "+$c", $this->isdCodes())) . ').');
                 return;
             }
             $rest = substr($digits, strlen($match));
@@ -1056,10 +1123,14 @@ class FpiController extends Controller
         }
 
         $labels = [
-            'applicant' => 'Applicant Profile', 'contact' => 'Contact & Address',
-            'ubo_tool' => 'UBO Determination', 'ubo' => 'Beneficial Ownership',
-            'financial' => 'Financial & Tax', 'category' => 'Category & Regulatory',
-            'depository' => 'PAN, Bank & Depository', 'additional' => 'Additional Info',
+            'applicant' => 'Applicant Profile',
+            'contact' => 'Contact & Address',
+            'ubo_tool' => 'UBO Determination',
+            'ubo' => 'Beneficial Ownership',
+            'financial' => 'Financial & Tax',
+            'category' => 'Category & Regulatory',
+            'depository' => 'PAN, Bank & Depository',
+            'additional' => 'Additional Info',
             'declarations' => 'Final Declarations',
         ];
 
@@ -1107,8 +1178,11 @@ class FpiController extends Controller
             file_put_contents("{$dir}/{$fname}", $pdf);
             $path = "uploads/kyc/{$id}/{$code}/{$fname}";
             DB::table('kyc_documents')->insert([
-                'applicant_id' => $id, 'doc_type_id' => $type->doc_type_id,
-                'document_purpose' => $type->purpose, 'file_storage_uri' => $path, 'is_verified' => 0,
+                'applicant_id' => $id,
+                'doc_type_id' => $type->doc_type_id,
+                'document_purpose' => $type->purpose,
+                'file_storage_uri' => $path,
+                'is_verified' => 0,
             ]);
         }
     }
@@ -1127,7 +1201,7 @@ class FpiController extends Controller
         $codeByField = ['uploadedIncorpCert' => 'INCORP', 'uploadedPanCopy' => 'PANCOPY'];
         foreach ($codeByField as $field => $code) {
             if (in_array($code, $have, true) && isset($rules[$field])) {
-                $rules[$field] = array_values(array_filter($rules[$field], fn ($r) => $r !== 'required'));
+                $rules[$field] = array_values(array_filter($rules[$field], fn($r) => $r !== 'required'));
                 array_unshift($rules[$field], 'nullable');
             }
         }
@@ -1192,7 +1266,9 @@ class FpiController extends Controller
     private function saveIndividualApplicant(Request $request, int $id): void
     {
         $name = trim(implode(' ', array_filter([
-            $request->input('indFirstName'), $request->input('indMiddleName'), $request->input('indLastName'),
+            $request->input('indFirstName'),
+            $request->input('indMiddleName'),
+            $request->input('indLastName'),
         ])));
         DB::table('applicants')->where('applicant_id', $id)->update([
             'entity_type'          => 'Individual',
@@ -1200,14 +1276,35 @@ class FpiController extends Controller
         ]);
 
         $keys = [
-            'indTitle', 'indFirstName', 'indMiddleName', 'indLastName',
-            'indOtherName', 'indOtherTitle', 'indOtherFirstName', 'indOtherMiddleName', 'indOtherLastName',
-            'indDob', 'indPlaceOfBirth', 'indCountryOfBirth', 'indBirthIsd',
-            'indNationality', 'indNationalityIsd', 'indPassport',
-            'indGender', 'indMaritalStatus', 'indCitizenshipStatus', 'indCountryOfCitizenship',
-            'indFatherFirstName', 'indFatherMiddleName', 'indFatherLastName',
-            'indMotherFirstName', 'indMotherMiddleName', 'indMotherLastName',
-            'indSpouseFirstName', 'indSpouseMiddleName', 'indSpouseLastName',
+            'indTitle',
+            'indFirstName',
+            'indMiddleName',
+            'indLastName',
+            'indOtherName',
+            'indOtherTitle',
+            'indOtherFirstName',
+            'indOtherMiddleName',
+            'indOtherLastName',
+            'indDob',
+            'indPlaceOfBirth',
+            'indCountryOfBirth',
+            'indBirthIsd',
+            'indNationality',
+            'indNationalityIsd',
+            'indPassport',
+            'indGender',
+            'indMaritalStatus',
+            'indCitizenshipStatus',
+            'indCountryOfCitizenship',
+            'indFatherFirstName',
+            'indFatherMiddleName',
+            'indFatherLastName',
+            'indMotherFirstName',
+            'indMotherMiddleName',
+            'indMotherLastName',
+            'indSpouseFirstName',
+            'indSpouseMiddleName',
+            'indSpouseLastName',
         ];
         $data = [];
         foreach ($keys as $k) {
@@ -1585,8 +1682,10 @@ class FpiController extends Controller
         );
 
         $docMap = [
-            'uploadedIncorpCert' => 'INCORP', 'uploadedLeiProof' => 'LEIPROOF',
-            'uploadedPanCopy' => 'PANCOPY', 'uploadedUboDecl' => 'UBODECL',
+            'uploadedIncorpCert' => 'INCORP',
+            'uploadedLeiProof' => 'LEIPROOF',
+            'uploadedPanCopy' => 'PANCOPY',
+            'uploadedUboDecl' => 'UBODECL',
         ];
         foreach ($docMap as $field => $code) {
             if (!$request->hasFile($field)) {
