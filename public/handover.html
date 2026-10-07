@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facilon FPI — Technical Handover</title>
+<style>
+    :root {
+        --ink:#1a2633; --muted:#5c6b78; --line:#dde2e6; --soft:#f4f7f9;
+        --primary:#2f5560; --primary2:#3e6f7c; --accent:#eef3f5; --code:#f6f8fa;
+        --ok:#0f5132; --okbg:#d1e7dd; --warnbg:#fff3cd; --warn:#664d03;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:#e9edf0; font-size:13px; line-height:1.55; }
+    .toolbar { position:sticky; top:0; z-index:9; display:flex; justify-content:center; gap:10px; padding:12px; background:#ffffffe6; backdrop-filter:blur(4px); border-bottom:1px solid var(--line); }
+    .btn { border:none; border-radius:6px; padding:9px 20px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .btn-print { background:var(--primary2); color:#fff; }
+    .sheet { max-width:210mm; margin:16px auto; background:#fff; padding:20mm 18mm; box-shadow:0 2px 16px rgba(0,0,0,.12); }
+
+    h1 { font-size:26px; color:var(--primary); letter-spacing:-.3px; }
+    h2 { font-size:17px; color:#fff; background:var(--primary); padding:7px 12px; border-radius:5px; margin:26px 0 12px; letter-spacing:.3px; }
+    h3 { font-size:14.5px; color:var(--primary2); margin:16px 0 6px; border-bottom:1px solid var(--line); padding-bottom:3px; }
+    h4 { font-size:13px; color:var(--ink); margin:12px 0 4px; }
+    p { margin:6px 0; }
+    ul, ol { margin:6px 0 6px 22px; }
+    li { margin:3px 0; }
+    code { background:var(--code); border:1px solid var(--line); border-radius:3px; padding:1px 5px; font-family:'Consolas','Courier New',monospace; font-size:11.5px; color:#b31d28; }
+    pre { background:var(--code); border:1px solid var(--line); border-radius:6px; padding:12px 14px; overflow:auto; font-family:'Consolas','Courier New',monospace; font-size:11px; line-height:1.5; margin:8px 0; color:#24292e; white-space:pre-wrap; }
+    table { width:100%; border-collapse:collapse; font-size:11.5px; margin:8px 0; }
+    th { background:var(--accent); text-align:left; padding:6px 9px; border:1px solid var(--line); font-size:10.5px; text-transform:uppercase; letter-spacing:.3px; color:var(--primary); }
+    td { padding:6px 9px; border:1px solid var(--line); vertical-align:top; }
+    .lead { font-size:13px; color:var(--muted); }
+    .cover { text-align:center; padding:40px 0 30px; border-bottom:3px solid var(--primary); margin-bottom:10px; }
+    .cover .logo { width:60px; height:60px; border-radius:12px; background:linear-gradient(135deg,var(--primary2),var(--primary)); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:30px; font-weight:800; margin-bottom:14px; }
+    .cover .sub { color:var(--muted); font-size:14px; margin-top:6px; }
+    .meta { display:flex; justify-content:center; gap:30px; margin-top:16px; font-size:11.5px; color:var(--muted); }
+    .note { background:var(--accent); border-left:4px solid var(--primary2); border-radius:0 5px 5px 0; padding:10px 14px; margin:10px 0; font-size:12px; }
+    .warn { background:var(--warnbg); border-left:4px solid #e0a800; border-radius:0 5px 5px 0; padding:10px 14px; margin:10px 0; font-size:12px; color:var(--warn); }
+    .toc ol { margin-left:18px; }
+    .toc a { color:var(--primary2); text-decoration:none; }
+    .pill { display:inline-block; background:var(--okbg); color:var(--ok); font-weight:700; font-size:10px; padding:2px 8px; border-radius:10px; }
+    .kbd { font-family:monospace; background:#eceff1; border:1px solid var(--line); border-bottom-width:2px; border-radius:4px; padding:1px 6px; font-size:11px; }
+
+    @media print {
+        body { background:#fff; font-size:11.5px; }
+        .toolbar { display:none; }
+        .sheet { max-width:none; margin:0; padding:0; box-shadow:none; }
+        @page { size:A4; margin:14mm; }
+        h2 { break-after:avoid; }
+        h3, h4 { break-after:avoid; }
+        pre, table, .note, .warn { break-inside:avoid; }
+    }
+</style>
+</head>
+<body>
+<div class="toolbar">
+    <button class="btn btn-print" onclick="window.print()">🖨 Save as PDF (Ctrl/Cmd + P)</button>
+</div>
+
+<div class="sheet">
+
+    <div class="cover">
+        <div class="logo">F</div>
+        <h1>Facilon — FPI Registration System</h1>
+        <div class="sub">Technical Handover &amp; Developer Guide</div>
+        <div class="meta">
+            <span><strong>Stack:</strong> Laravel 12 · PHP 8.2 · MySQL 8</span>
+            <span><strong>Module:</strong> FPI Common Application Form (CAF)</span>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <h2>1. Purpose &amp; Overview</h2>
+    <p>This application digitises the SEBI <strong>Foreign Portfolio Investor (FPI) Common Application Form (CAF)</strong>.
+    An applicant chooses whether they are an <strong>Individual</strong> or a <strong>Non-Individual</strong> (corporate/entity),
+    fills a multi-step wizard, saves each tab, and submits the application. After submission the form becomes read-only and a
+    printable PDF/preview is available.</p>
+    <p>The whole feature is implemented in <strong>one controller</strong> (<code>FpiController</code>), a <strong>shared Blade wizard</strong>
+    (<code>fpi/index.blade.php</code>) that adapts to the entity type, a <strong>start page</strong>, and a <strong>print/preview</strong> view.
+    Data is stored across the normalised CAF schema (41 tables) plus a few JSON columns for the long tail of fields.</p>
+
+    <div class="toc note">
+        <strong>Contents</strong>
+        <ol>
+            <li>Purpose &amp; Overview</li>
+            <li>Tech Stack &amp; Project Layout</li>
+            <li>High-Level Flow</li>
+            <li>Routes</li>
+            <li>Controller Reference (FpiController)</li>
+            <li>The Wizard — Tabs &amp; Entity Awareness</li>
+            <li>Data Model &amp; Persistence Strategy</li>
+            <li>Validation Architecture (3 layers)</li>
+            <li>Dynamic Tables, Checkbox Groups &amp; Conditional Sections</li>
+            <li>UBO Determination Tool</li>
+            <li>Auto-fill &amp; Save All</li>
+            <li>PDF / Print Preview</li>
+            <li>Frontend Assets</li>
+            <li>How to Extend (add a field / tab / table)</li>
+            <li>Setup &amp; Deployment</li>
+            <li>Database Migrations &amp; Server Move</li>
+            <li>Known Gotchas</li>
+        </ol>
+    </div>
+
+    <!-- ========================================================= -->
+    <h2>2. Tech Stack &amp; Project Layout</h2>
+    <table>
+        <tr><th>Area</th><th>Detail</th></tr>
+        <tr><td>Framework</td><td>Laravel 12 (PHP 8.2+)</td></tr>
+        <tr><td>Database</td><td>MySQL 8 (utf8mb4). Local DB: <code>facilon_fpi</code> · another server: <code>facilon_fpi_vapt</code></td></tr>
+        <tr><td>Frontend</td><td>Blade + vanilla JavaScript (no SPA framework). SweetAlert2 (CDN) for dialogs. Tailwind/Vite present but the form uses plain CSS.</td></tr>
+        <tr><td>Styling</td><td>Base layout CSS inline in <code>layouts/app.blade.php</code>; form CSS extracted to <code>public/css/fpi-form.css</code>.</td></tr>
+        <tr><td>Sessions</td><td>Database driver. The in-progress applicant is tracked via <code>session('caf_applicant_id')</code> and <code>session('caf_entity_type')</code>.</td></tr>
+    </table>
+    <h3>Key files</h3>
+    <table>
+        <tr><th>File</th><th>Responsibility</th></tr>
+        <tr><td><code>app/Http/Controllers/FpiController.php</code></td><td>All server logic — render, per-tab save, validation, submit, preview.</td></tr>
+        <tr><td><code>routes/web.php</code></td><td>All routes (see §4).</td></tr>
+        <tr><td><code>resources/views/fpi/start.blade.php</code></td><td>Landing page — pick Individual / Non-Individual.</td></tr>
+        <tr><td><code>resources/views/fpi/index.blade.php</code></td><td>The wizard (both entity types; ~3k lines incl. JS).</td></tr>
+        <tr><td><code>resources/views/fpi/preview.blade.php</code></td><td>Printable application summary (entity-aware).</td></tr>
+        <tr><td><code>resources/views/layouts/app.blade.php</code></td><td>Base layout (topbar, logo→home, page head).</td></tr>
+        <tr><td><code>public/css/fpi-form.css</code></td><td>All <code>.fpi-*</code> form styles.</td></tr>
+        <tr><td><code>database/migrations/</code></td><td>Schema (base CAF + additive columns).</td></tr>
+        <tr><td><code>database/schema/*.sql</code></td><td>Raw DDL + master-data seed executed by the base migration.</td></tr>
+    </table>
+
+    <!-- ========================================================= -->
+    <h2>3. High-Level Flow</h2>
+    <pre>  /  (start page)
+   │   choose Individual / Non-Individual  → POST /fpi/start (begin)
+   ▼
+  /fpi/individual   OR   /fpi/non-individual   (index → renders wizard)
+   │   each tab: user fills → "Save Section" → POST /fpi (store)
+   │             store() validates that section, writes to DB, marks it complete,
+   │             returns JSON {ok, next, message}; the UI advances with no reload.
+   ▼
+  Final "Declarations" tab saved  →  "Submit Application" enabled
+   │   confirmation dialog → POST /fpi/submit (submit)
+   ▼
+  status = SUBMITTED (read-only)  →  "Print / Preview" → GET /fpi/preview</pre>
+    <ul>
+        <li><strong>Entity type is chosen once</strong> on the start page and stored in the session. The URL (<code>/fpi/individual</code> vs <code>/fpi/non-individual</code>) always reflects it; mismatched URLs auto-redirect.</li>
+        <li><strong>Per-tab AJAX save</strong> — nothing is lost between tabs; each save persists just that section and records completion in <code>application_section_progress</code> (drives the green ✓).</li>
+        <li><strong>Draft vs Submitted</strong> — a draft applicant row is created on first save; submission flips <code>application_status</code> to <code>SUBMITTED</code> and logs to <code>application_status_history</code>.</li>
+    </ul>
+
+    <!-- ========================================================= -->
+    <h2>4. Routes <span class="lead">(routes/web.php)</span></h2>
+    <table>
+        <tr><th>Method</th><th>URI</th><th>Name</th><th>Action</th></tr>
+        <tr><td>GET</td><td>/</td><td>fpi.start</td><td>start() — landing page</td></tr>
+        <tr><td>POST</td><td>/fpi/start</td><td>fpi.begin</td><td>begin() — record entity type, start a fresh application</td></tr>
+        <tr><td>GET</td><td>/fpi/individual</td><td>fpi.individual</td><td>index() — wizard (Individual)</td></tr>
+        <tr><td>GET</td><td>/fpi/non-individual</td><td>fpi.non-individual</td><td>index() — wizard (Non-Individual)</td></tr>
+        <tr><td>POST</td><td>/fpi</td><td>fpi.store</td><td>store() — save one section</td></tr>
+        <tr><td>POST</td><td>/fpi/submit</td><td>fpi.submit</td><td>submit() — final submission</td></tr>
+        <tr><td>POST</td><td>/fpi/new</td><td>fpi.new</td><td>newApplication() — back to start</td></tr>
+        <tr><td>GET</td><td>/fpi/load/{applicant}</td><td>fpi.load</td><td>load() — reopen an existing application</td></tr>
+        <tr><td>GET</td><td>/fpi/preview</td><td>fpi.preview</td><td>preview() — printable summary</td></tr>
+    </table>
+    <div class="warn"><strong>Security note:</strong> there is currently no authentication. <code>load/{id}</code> opens any application by numeric id (IDOR), and uploaded KYC files live under <code>public/uploads/kyc/</code> (publicly reachable). For production, add auth + scope every query to the owner, and move uploads to private storage served through an authorised controller.</div>
+
+    <!-- ========================================================= -->
+    <h2>5. Controller Reference — FpiController</h2>
+    <h3>Public actions</h3>
+    <table>
+        <tr><th>Method</th><th>What it does</th></tr>
+        <tr><td><code>start()</code></td><td>Renders the start page with the current (if any) chosen type.</td></tr>
+        <tr><td><code>begin(Request)</code></td><td>Validates <code>entityType ∈ {Individual, Non-Individual}</code>, forgets any draft, stores <code>caf_entity_type</code>, redirects to the typed form URL.</td></tr>
+        <tr><td><code>index()</code></td><td>Gates access (must have a type or an in-progress draft), keeps the URL in sync with the type, loads the blank form + any saved draft, old input, countries, saved sections, application list, UBO rows; returns <code>fpi.index</code>.</td></tr>
+        <tr><td><code>store(Request)</code></td><td>Core save. Reads <code>section</code>, validates <strong>only that section's</strong> rules, creates/uses the draft applicant, dispatches to <code>save{Section}Section()</code>, marks the section complete, returns <code>{ok, section, next, message}</code> (JSON) or redirects.</td></tr>
+        <tr><td><code>submit(Request)</code></td><td>Checks all required sections are complete, sets <code>SUBMITTED</code>, logs status history.</td></tr>
+        <tr><td><code>load($id)</code></td><td>Reopens an application; syncs <code>caf_entity_type</code> from the record.</td></tr>
+        <tr><td><code>newApplication()</code></td><td>Forgets session keys → redirect to start.</td></tr>
+        <tr><td><code>preview()</code></td><td>Loads everything for the applicant (normalised rows + JSON stores), computes the UBO summary, returns <code>fpi.preview</code>.</td></tr>
+    </table>
+    <h3>Important private helpers</h3>
+    <table>
+        <tr><th>Helper</th><th>Role</th></tr>
+        <tr><td><code>isIndividual()</code></td><td><code>session('caf_entity_type') === 'Individual'</code>.</td></tr>
+        <tr><td><code>order()</code> / <code>$order</code> / <code>$orderIndividual</code></td><td>Section order per entity type (Individual skips <code>ubo_tool</code> + <code>ubo</code>).</td></tr>
+        <tr><td><code>formRoute()</code></td><td>Returns <code>fpi.individual</code> or <code>fpi.non-individual</code> for type-aware redirects.</td></tr>
+        <tr><td><code>sectionRules()</code></td><td>Returns the full per-section validation rules; appends/overrides Individual-only rules at the end.</td></tr>
+        <tr><td><code>save{Applicant,Contact,Ubo_tool,Ubo,Financial,Category,Depository,Additional,Declarations}Section()</code></td><td>One method per tab; writes to the normalised tables and/or the JSON stores.</td></tr>
+        <tr><td><code>saveIndividualApplicant()</code></td><td>Individual Step 1 → <code>applicants</code> + <code>caf_extra_json['ind_applicant']</code>.</td></tr>
+        <tr><td><code>loadForm($id)</code></td><td>Rebuilds all form-field values from the DB for re-population; merges the JSON stores back in.</td></tr>
+        <tr><td><code>loadExtra()</code> / <code>saveExtra()</code></td><td>Read/merge the section-keyed <code>caf_extra_json</code> document.</td></tr>
+        <tr><td><code>jsonArray()</code></td><td>Safely decode a JSON array field from the request.</td></tr>
+        <tr><td><code>allRowsFilled($keys, $label)</code></td><td>Validation closure: every added table row must have the given columns filled.</td></tr>
+        <tr><td><code>computeUboPersons($entities)</code></td><td>Server mirror of the JS UBO tool — aggregates natural persons' effective % from the ownership tree.</td></tr>
+    </table>
+
+    <!-- ========================================================= -->
+    <h2>6. The Wizard — Tabs &amp; Entity Awareness</h2>
+    <p>Both entity types share <strong>one</strong> view (<code>fpi/index.blade.php</code>). The top <code>@php</code> block builds the <code>$steps</code> array conditionally on <code>$isIndividual</code>; the applicant panel renders personal vs corporate fields; the UBO panels are wrapped in <code>@unless($isIndividual)</code>.</p>
+    <table>
+        <tr><th>Section code</th><th>Non-Individual</th><th>Individual</th></tr>
+        <tr><td>applicant</td><td>Step 1 — Corporate profile</td><td>Step 1 — Personal details</td></tr>
+        <tr><td>contact</td><td>Step 2 — Address &amp; Contact</td><td>Step 2 — Address &amp; Contact</td></tr>
+        <tr><td>ubo_tool</td><td>Step 3 — UBO Determination tool</td><td><em>(skipped)</em></td></tr>
+        <tr><td>ubo</td><td>Step 4 — Beneficial Ownership</td><td><em>(skipped)</em></td></tr>
+        <tr><td>financial</td><td>Step 5 — Financial &amp; Tax</td><td>Step 3</td></tr>
+        <tr><td>category</td><td>Step 6 — Category &amp; Regulatory</td><td>Step 4</td></tr>
+        <tr><td>depository</td><td>Step 7 — PAN, Bank &amp; Depository</td><td>Step 5</td></tr>
+        <tr><td>additional</td><td>Step 8 — Additional Info</td><td>Step 6</td></tr>
+        <tr><td>declarations</td><td>Step 9 — Declarations &amp; Upload</td><td>Step 7</td></tr>
+    </table>
+    <p>The section <strong>code</strong> (e.g. <code>contact</code>) is the stable identifier used everywhere — the hidden <code>section</code> field, <code>save{Section}Section()</code>, <code>application_section_progress.section_code</code>, and the JS wizard. Step <em>numbers</em> are display-only.</p>
+
+    <!-- ========================================================= -->
+    <h2>7. Data Model &amp; Persistence Strategy</h2>
+    <p>The base schema is the approved CAF model — <strong>41 tables</strong> (18 master <code>m_*</code> + 19 core + 4 workflow), created by <code>2026_08_31_000001_create_caf_schema</code> from raw SQL in <code>database/schema/</code>. Data access uses the <strong>query builder</strong> (<code>DB::table()</code>), not Eloquent models.</p>
+    <h3>Where each tab's data lives</h3>
+    <table>
+        <tr><th>Tab</th><th>Normalised tables</th><th>JSON store</th></tr>
+        <tr><td>Applicant (corp)</td><td>applicants, corporate_applicant_details, applicant_aliases</td><td>—</td></tr>
+        <tr><td>Applicant (ind)</td><td>applicants</td><td>caf_extra_json['ind_applicant']</td></tr>
+        <tr><td>Contact</td><td>applicant_addresses (Registered/Office), applicant_contacts (Residence/Office)</td><td>—</td></tr>
+        <tr><td>UBO tool</td><td>applicants.ubo_structure_json</td><td>(dedicated column)</td></tr>
+        <tr><td>Beneficial Ownership</td><td>ubo</td><td>applicants.beneficial_ownership_json (sub-funds, intermediates, controllers)</td></tr>
+        <tr><td>Financial</td><td>applicants (income/net worth), tax_residencies</td><td>caf_extra_json['financial']</td></tr>
+        <tr><td>Category</td><td>applicants (category), applicant_foreign_regulators</td><td>caf_extra_json['category']</td></tr>
+        <tr><td>Depository</td><td>pan_additional_details, depository_bank_accounts, office_verification, applicant_custodian_details</td><td>caf_extra_json['depository']</td></tr>
+        <tr><td>Additional</td><td>applicant_contacts (Compliance), investment_managers, corporate_applicant_details.india_place_of_business</td><td>caf_extra_json['additional']</td></tr>
+        <tr><td>Declarations</td><td>application_declaration, kyc_documents (files)</td><td>caf_extra_json['declarations']</td></tr>
+    </table>
+    <div class="note"><strong>Why JSON stores?</strong> Many reference-form fields and all the dynamic add-row tables either had no column in the approved schema or depend on master tables that are unseeded (occupation/profession/income codes). Storing them in a section-keyed <code>caf_extra_json</code> document (and <code>beneficial_ownership_json</code> for the BO tables) avoids FK failures and keeps the additive footprint tiny. Genuine scalar homes in the normalised schema are still used wherever they exist.</div>
+    <h3>The three columns added by this project</h3>
+    <table>
+        <tr><th>Migration</th><th>Column</th></tr>
+        <tr><td>…_000006_add_noind_step1_2_columns</td><td><code>corporate_applicant_details.incorporation_isd_code</code> VARCHAR(5) NULL</td></tr>
+        <tr><td>…_000007_add_noind_step3_bo</td><td><code>applicants.beneficial_ownership_json</code> TEXT NULL</td></tr>
+        <tr><td>…_000008_add_caf_extra_json</td><td><code>applicants.caf_extra_json</code> TEXT NULL</td></tr>
+    </table>
+
+    <!-- ========================================================= -->
+    <h2>8. Validation Architecture (3 layers)</h2>
+    <p>Every mandatory field is enforced on <strong>three</strong> layers that are kept in sync:</p>
+    <ol>
+        <li><strong>Blade asterisk</strong> — a red <code>&lt;span class="fpi-req"&gt;*&lt;/span&gt;</code> on the label (sometimes wrapped in <code>@if($isIndividual)</code> for type-specific rules).</li>
+        <li><strong>Client-side (JS)</strong> — the <code>REQUIRED</code> map (field → label) + conditional blocks inside <code>runRules()</code>. Validation runs on Save/Next (<code>validateStep</code>) and on Submit (<code>validateAll</code>). Invalid fields get <code>.is-invalid</code> and an inline <code>.fpi-invalid-feedback</code> message.</li>
+        <li><strong>Server-side</strong> — <code>sectionRules()</code> in the controller; Individual-only and shared rules. This is the source of truth; the client checks are UX.</li>
+    </ol>
+    <p>Conditional requirements use Laravel's <code>required_if</code> (e.g. PAN number + name required only when <code>hasPan = yes</code>) or custom closures. Added-row tables are validated by the <code>allRowsFilled()</code> closure (server) and a per-container loop (client).</p>
+
+    <!-- ========================================================= -->
+    <h2>9. Dynamic Tables, Checkbox Groups &amp; Conditional Sections</h2>
+    <h3>Repeater tables</h3>
+    <p>Generic add-row tables (Investment Managers, Public Retail, Investor Group, Prior Association, Tax Residencies, Share Classes, Category-I Entities, Clients, Signatories) are built by the JS <code>makeRepeater(cfg)</code> helper. Each registers in <code>REPEATERS</code>, serialises to a hidden <code>&lt;name&gt;Json</code> field on save, and exposes a <code>seed()</code> for auto-fill (<code>window.__seedRepeater(hiddenId, rows)</code>).</p>
+    <h3>Beneficial-Ownership tables</h3>
+    <p>Sub-funds, Intermediate Entities and Controlling Entities use a dedicated module (not the generic repeater), serialised to <code>subFundsJson / intermediatesJson / controllersJson</code> and seeded via <code>window.__seedBo({...})</code>. They persist in <code>beneficial_ownership_json</code>.</p>
+    <h3>Checkbox groups</h3>
+    <p>Multi-select groups (Source of Income <code>.js-income-src</code>, Sensitive Activities <code>.js-sensitive-act</code>, IM Types <code>.js-im-type</code>) can't be serialised by the generic field loop — they are collected into hidden JSON fields in <code>saveSectionAjax()</code> and seeded by <code>autofillExtras()</code>.</p>
+    <h3>Conditional show/hide</h3>
+    <p>Driven by the small <code>bindToggle(selectId, targetId, showVal)</code> helper and a few bespoke handlers (hasPAN, custodian, clubbing → investor group, listing, mode "Others", bank-subsidiary, NRI IM sub-options, Reg 5(b)(vii) client eligibility gate, KRA, "same as registered" address).</p>
+
+    <!-- ========================================================= -->
+    <h2>10. UBO Determination Tool <span class="lead">(Non-Individual only)</span></h2>
+    <p>Step 3 is an interactive ownership-tree builder. The model is <code>entities = [{ id, name, type, owners:[{ id, name, type:'Individual'|'Entity', pct, targetId }] }]</code>, rooted at <code>applicant</code>. <code>computePersons()</code> walks the tree, multiplying percentages across layers, to aggregate each natural person's <strong>effective ownership %</strong>; anyone ≥ 10% (SEBI threshold) is flagged as an identified UBO. The tree serialises to <code>applicants.ubo_structure_json</code>. The identified names feed the Beneficial Ownership tab. The same computation is reproduced in PHP (<code>computeUboPersons()</code>) so the PDF can show the UBO Summary + Ownership Diagram without JS.</p>
+    <div class="note">Both the UBO Determination tool (Step 3) and Beneficial Ownership (Step 4) are <strong>optional when completely empty</strong> — the wizard lets the user skip an empty UBO tool silently; Beneficial Ownership must be answered (Yes/No) before submit for Non-Individual.</div>
+
+    <!-- ========================================================= -->
+    <h2>11. Auto-fill &amp; Save All</h2>
+    <p>The <span class="pill">⚡ Auto-fill &amp; Save All</span> button runs <code>autofillFlow()</code>: for each tab it applies the <code>SAMPLE</code> scalar data (<code>SAMPLE.applicant</code> / <code>SAMPLE.applicantIndividual</code> / per-section), runs <code>autofillExtras()</code> (checkbox groups + <code>__seedRepeater</code>/<code>__seedBo</code> table rows), then saves the tab via AJAX. After all tabs save it asks for <strong>explicit confirmation</strong> before the final submit (cancel keeps everything saved as a draft). This is a demo/QA convenience — the <code>SAMPLE</code> object is functional dummy data, not stored records.</p>
+
+    <!-- ========================================================= -->
+    <h2>12. PDF / Print Preview</h2>
+    <p><code>GET /fpi/preview</code> → <code>fpi/preview.blade.php</code>, a self-contained printable sheet (its own CSS; "Save as PDF" via <code>window.print()</code>). It is <strong>entity-aware</strong>:</p>
+    <ul>
+        <li><strong>Individual</strong> — shows the personal-details section; hides the UBO Determination + Beneficial Ownership sections; sections renumber with no gaps.</li>
+        <li><strong>Non-Individual</strong> — corporate profile + UBO Determination (tree, UBO Summary, Ownership Diagram) + Beneficial Ownership + everything else.</li>
+    </ul>
+    <p>The header shows the applicant type and the title reads "Application Summary — Individual / Non-Individual FPI". The controller passes decoded JSON stores (<code>financialX, categoryX, depositoryX, additionalX, declX, indX, bo</code>) plus <code>uboPersons</code>, so <em>all</em> captured data is rendered. The "Print / Preview" button appears top-right of the Declarations tab only after submission.</p>
+
+    <!-- ========================================================= -->
+    <h2>13. Frontend Assets</h2>
+    <ul>
+        <li><strong>Base layout CSS</strong> — inline in <code>layouts/app.blade.php</code> (topbar, buttons, page head). The logo links to <code>route('fpi.start')</code>.</li>
+        <li><strong>Form CSS</strong> — <code>public/css/fpi-form.css</code>, linked via <code>@push('styles')</code>. All <code>.fpi-*</code> classes.</li>
+        <li><strong>Preview CSS</strong> — inline in <code>preview.blade.php</code> (intentionally self-contained for printing).</li>
+        <li><strong>JS</strong> — one large IIFE inside <code>index.blade.php</code> <code>@push('scripts')</code>: wizard navigation, validation, repeaters, UBO tool, auto-fill, submit. SweetAlert2 from CDN (in the layout head).</li>
+    </ul>
+
+    <!-- ========================================================= -->
+    <h2>14. How to Extend</h2>
+    <h3>Add a simple field to an existing tab</h3>
+    <ol>
+        <li><strong>Blade</strong> — add the input to the tab panel in <code>index.blade.php</code> (use <code>.fpi-form-group</code> + <code>.fpi-input/.fpi-select</code>; add <code>&lt;span class="fpi-req"&gt;*&lt;/span&gt;</code> if required).</li>
+        <li><strong>defaultForm()</strong> — add the key with an empty default.</li>
+        <li><strong>sectionRules()</strong> — add its validation rule (and to the JS <code>REQUIRED</code> map if required client-side).</li>
+        <li><strong>save{Section}Section()</strong> — persist it (real column if one exists, else via <code>saveExtra($id, 'section', [...])</code>).</li>
+        <li><strong>loadForm()</strong> — if stored in a real column, read it back (the <code>caf_extra_json</code> slice is merged automatically).</li>
+        <li><strong>preview.blade.php</strong> — add it to the relevant section if it should appear in the PDF.</li>
+        <li><strong>SAMPLE</strong> — add a value so Auto-fill still passes.</li>
+    </ol>
+    <h3>Add a new add-row table</h3>
+    <ol>
+        <li>Add the container, "+ Add" button, and a hidden <code>&lt;name&gt;Json</code> field in the blade.</li>
+        <li><code>makeRepeater({...})</code> in JS with the column config and <code>section</code>.</li>
+        <li>Persist in the section's save method via <code>jsonArray($request, '&lt;name&gt;Json')</code> → <code>saveExtra</code>.</li>
+        <li>Validate rows with <code>allRowsFilled([...])</code> (server) + a container loop (client) if columns are required.</li>
+        <li>Seed it in <code>autofillExtras()</code> and render it in the preview.</li>
+    </ol>
+    <h3>Add a whole new tab</h3>
+    <p>Add an entry to <code>$steps</code> (both entity branches as needed), a panel with <code>data-panel="&lt;code&gt;"</code>, a <code>save&lt;Code&gt;Section()</code> method, rules in <code>sectionRules()</code>, and the code into <code>$order</code>/<code>$orderIndividual</code> and the submit-required list.</p>
+
+    <!-- ========================================================= -->
+    <h2>15. Setup &amp; Deployment</h2>
+    <pre>composer install
+cp .env.example .env            # set DB_DATABASE / DB_USERNAME / DB_PASSWORD
+php artisan key:generate
+php artisan migrate --force     # base CAF schema + the 3 additive columns + master seed
+php artisan serve               # or point a vhost at /public
+
+# after copying files to another server:
+php artisan config:clear
+php artisan view:clear</pre>
+    <ul>
+        <li>Ensure <code>storage/</code> and <code>public/uploads/</code> are writable.</li>
+        <li>Master tables <code>m_countries</code>, <code>m_fpi_categories</code>, <code>m_document_types</code> must be seeded (done by the base migrations) or dropdowns/uploads break.</li>
+        <li><code>APP_DEBUG=false</code> on anything non-local; remove <code>.env</code> from version control and rotate credentials.</li>
+    </ul>
+
+    <!-- ========================================================= -->
+    <h2>16. Database Migrations &amp; Server Move</h2>
+    <p>If the target DB already has the base 41-table CAF schema, only the 3 additive columns are needed. Either run <code>php artisan migrate --force</code> (with the 3 migration files present), or apply the raw SQL:</p>
+    <pre>ALTER TABLE corporate_applicant_details
+  ADD COLUMN incorporation_isd_code VARCHAR(5) NULL AFTER incorporation_country_id;
+
+ALTER TABLE applicants
+  ADD COLUMN beneficial_ownership_json TEXT NULL AFTER ubo_structure_json;
+
+ALTER TABLE applicants
+  ADD COLUMN caf_extra_json TEXT NULL AFTER beneficial_ownership_json;</pre>
+    <p>Also copy the non-DB artefacts: the updated views, <code>FpiController.php</code>, <code>routes/web.php</code>, and <code>public/css/fpi-form.css</code>.</p>
+
+    <!-- ========================================================= -->
+    <h2>17. Known Gotchas</h2>
+    <ul>
+        <li><strong>Editor formatter breaks Blade.</strong> A JS/Prettier formatter run on <code>.blade.php</code> can mangle <code>-&gt;</code> into <code>- &gt;</code> inside <code>@json(...)</code> in the <code>&lt;script&gt;</code> block, causing a PHP ParseError (500). Fixed by moving those PHP expressions into the top <code>@php</code> block (HTML context). <strong>Recommendation:</strong> disable format-on-save for Blade files (VS Code: <code>"[blade]": { "editor.formatOnSave": false }</code>).</li>
+        <li><strong>No auth / public uploads</strong> — see §4 warning. Address before production.</li>
+        <li><strong>PHP numeric array keys</strong> — option lists keyed by <code>'01'..'20'</code> become integers for 10–20; use <code>(string)</code> casts in <code>@selected()</code> comparisons.</li>
+        <li><strong>Checkbox groups &amp; repeaters</strong> aren't captured by the generic field loop — they're serialised explicitly into hidden JSON fields before save.</li>
+        <li><strong>The UBO section is optional when empty</strong> but mandatory to answer (Yes/No) for Non-Individual before submit.</li>
+    </ul>
+
+    <p style="margin-top:28px; font-size:10.5px; color:var(--muted); border-top:1px solid var(--line); padding-top:10px;">
+        Facilon — FPI Registration · Technical Handover. Generated for developer onboarding. For the live field/validation details always refer to <code>FpiController::sectionRules()</code> and the tab panels in <code>index.blade.php</code>.
+    </p>
+</div>
+</body>
+</html>
