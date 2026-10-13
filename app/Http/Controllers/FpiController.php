@@ -167,6 +167,7 @@ class FpiController extends Controller
             'existingpanName' => '',
             'statusApplicant' => '',
             'panName' => '',
+            'printOnPan' => '',
             'aoAreaCode' => '',
             'aoType' => '',
             'aoRangeCode' => '',
@@ -992,6 +993,8 @@ class FpiController extends Controller
                 'dpId'            => ['required', 'string', 'max:20'],
                 'clientId'        => ['required', 'string', 'max:20'],
                 'hasPan'          => ['required', Rule::in(['yes', 'no'])],
+                // When applying for a PAN (hasPan = no), the printed name is father's or mother's.
+                'printOnPan'      => ['nullable', 'required_if:hasPan,no', Rule::in(['father', 'mother'])],
             ]);
         }
 
@@ -1592,6 +1595,7 @@ class FpiController extends Controller
             'existingpanName'    => $request->input('existingpanName') ?: '',
             'statusApplicant'    => $request->input('statusApplicant') ?: '',
             'panName'            => $request->input('panName') ?: '',
+            'printOnPan'         => $request->input('printOnPan') ?: '',
             'aoAreaCode'         => $request->input('aoAreaCode') ?: '',
             'aoType'             => $request->input('aoType') ?: '',
             'aoRangeCode'        => $request->input('aoRangeCode') ?: '',

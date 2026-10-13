@@ -870,12 +870,21 @@ $serverErrorsJs = $errors->messages();
                         <label class="fpi-label">Status of Applicant</label>
                         <select class="fpi-select" name="statusApplicant">
                             <option value="" @selected($form['statusApplicant']==='' )>Select</option>
-                            @foreach (['Company','PartnershipFirm','Government','Trusts','BodyOfIndividuals','LocalAuthority','ArtificialJuridicalPersons','AssociationOfPersons','LLP'] as $v)
+                            @foreach (['Individual','Company','PartnershipFirm','Government','Trusts','BodyOfIndividuals','LocalAuthority','ArtificialJuridicalPersons','AssociationOfPersons','LLP'] as $v)
                             <option value="{{ $v }}" @selected($form['statusApplicant']===$v)>{{ $v }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="fpi-form-group" style="grid-column: span 2"><label class="fpi-label">Name to be printed on PAN Card</label><input class="fpi-input" type="text" name="panName" value="{{ $form['panName'] }}"></div>
+                    @if ($isIndividual)
+                    <div class="fpi-form-group" style="grid-column: span 3">
+                        <label class="fpi-label">Name to print on PAN Card is of <span class="fpi-req">*</span></label>
+                        <div style="display:flex;gap:20px;align-items:center;height:40px">
+                            <label style="display:flex;gap:6px;align-items:center;font-size:13px;color:var(--gray700);cursor:pointer"><input type="radio" name="printOnPan" value="father" @checked($form['printOnPan'] === 'father')> Father's Name</label>
+                            <label style="display:flex;gap:6px;align-items:center;font-size:13px;color:var(--gray700);cursor:pointer"><input type="radio" name="printOnPan" value="mother" @checked($form['printOnPan'] === 'mother')> Mother's Name</label>
+                        </div>
+                    </div>
+                    @endif
                     <div class="fpi-form-group"><label class="fpi-label">AO Area Code</label><input class="fpi-input" type="text" name="aoAreaCode" value="{{ $form['aoAreaCode'] }}"></div>
                     <div class="fpi-form-group"><label class="fpi-label">AO Type</label><input class="fpi-input" type="text" name="aoType" value="{{ $form['aoType'] }}"></div>
                     <div class="fpi-form-group"><label class="fpi-label">AO Range Code</label><input class="fpi-input" type="text" name="aoRangeCode" value="{{ $form['aoRangeCode'] }}"></div>
@@ -2391,6 +2400,13 @@ $serverErrorsJs = $errors->messages();
                         msg: 'Name on PAN Card is required.'
                     });
                 }
+                // Individual applying for PAN: must choose father's or mother's name.
+                if (IS_INDIVIDUAL && hp && hp.value === 'no' && !document.querySelector('input[name="printOnPan"]:checked')) {
+                    errs.push({
+                        name: 'printOnPan',
+                        msg: 'Please choose whose name to print on the PAN card.'
+                    });
+                }
             }
             // Beneficial Ownership: Intermediate/Controlling entity rows must be fully filled
             [{
@@ -2911,9 +2927,13 @@ $serverErrorsJs = $errors->messages();
                 priorAssociation: 'no'
             },
             depository: {
-                hasPan: 'yes',
-                pan: 'AAACG1234F',
-                existingpanName: 'GLOBAL ALPHAS FPI FUND',
+                hasPan: 'no',
+                panName: 'JOHNATHAN R DAVIS',
+                aoAreaCode: 'DEL',
+                aoType: 'W',
+                aoRangeCode: '21',
+                aoNo: '1',
+                registrationNumber: 'REG-2015-0099',
                 bankName: 'CITIBANK N.A. MUMBAI',
                 bankAccount: '98765432101',
                 bankAccountType: 'NRO',
@@ -3092,6 +3112,10 @@ $serverErrorsJs = $errors->messages();
                 }]);
             } else if (id === 'depository') {
                 checkBoxes('.js-sensitive-act', ['forex']);
+                setField('statusApplicant', IS_INDIVIDUAL ? 'Individual' : 'Company');
+                // Applying for PAN (hasPan = No) → pick "Father's Name" for the printed name (Individual only).
+                const pf = document.querySelector('input[name="printOnPan"][value="father"]');
+                if (pf) { pf.checked = true; pf.dispatchEvent(new Event('change', { bubbles: true })); }
             } else if (id === 'additional') {
                 window.__seedRepeater && window.__seedRepeater('categoryOneEntitiesJsonField', [{
                     name: 'ALPHA GOVERNMENT FUND',

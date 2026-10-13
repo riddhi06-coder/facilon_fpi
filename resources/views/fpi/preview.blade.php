@@ -397,7 +397,7 @@
         <div class="section-head">{{ ++$sn }} · PAN, Bank &amp; Depository</div>
         <div class="section-body">
             <div class="grid grid-3">
-                <div class="f"><span class="f-label">Indian PAN</span><span class="f-value">{{ $val($pan->existing_pan ?? null) }}</span></div>
+                <div class="f"><span class="f-label">Indian PAN</span><span class="f-value">{{ ($depositoryX['hasPan'] ?? '') === 'no' ? 'Applying for a new PAN' : $val($pan->existing_pan ?? null) }}</span></div>
                 <div class="f"><span class="f-label">Bank Name</span><span class="f-value">{{ $val($bank->ad_category_1_bank_name ?? null) }}</span></div>
                 <div class="f"><span class="f-label">SWIFT / IFSC</span><span class="f-value">{{ $val($bank->bank_swift_ifsc ?? null) }}</span></div>
                 <div class="f"><span class="f-label">Account Number</span><span class="f-value">{{ $val($office->bank_account_number ?? null) }}</span></div>
@@ -406,13 +406,23 @@
                 <div class="f"><span class="f-label">DP ID</span><span class="f-value">{{ $val($office->dp_id ?? null) }}</span></div>
                 <div class="f"><span class="f-label">Client ID</span><span class="f-value">{{ $val($office->client_id ?? null) }}</span></div>
                 <div class="f"><span class="f-label">Already holds PAN?</span><span class="f-value">{{ $x($depositoryX, 'hasPan') }}</span></div>
-                <div class="f"><span class="f-label">Name on PAN Card</span><span class="f-value">{{ $x($depositoryX, 'existingpanName') }}</span></div>
+                <div class="f"><span class="f-label">Name on PAN Card</span><span class="f-value">{{ ($depositoryX['hasPan'] ?? '') === 'no' ? 'N/A — applying for new PAN' : $x($depositoryX, 'existingpanName') }}</span></div>
             </div>
             @if (($depositoryX['hasPan'] ?? '') === 'no')
                 <div class="subhead">Apply for PAN</div>
                 <div class="grid grid-3">
                     <div class="f"><span class="f-label">Status of Applicant</span><span class="f-value">{{ $x($depositoryX, 'statusApplicant') }}</span></div>
                     <div class="f"><span class="f-label">Name to Print on PAN</span><span class="f-value">{{ $x($depositoryX, 'panName') }}</span></div>
+                    @if ($isIndividual)
+                        @php
+                            $fatherName = trim(implode(' ', array_filter([$indX['indFatherFirstName'] ?? '', $indX['indFatherMiddleName'] ?? '', $indX['indFatherLastName'] ?? ''])));
+                            $motherName = trim(implode(' ', array_filter([$indX['indMotherFirstName'] ?? '', $indX['indMotherMiddleName'] ?? '', $indX['indMotherLastName'] ?? ''])));
+                            $pop = $depositoryX['printOnPan'] ?? '';
+                            $popName = $pop === 'father' ? ($fatherName ?: "Father's Name") : ($pop === 'mother' ? ($motherName ?: "Mother's Name") : '—');
+                            $popLabel = $pop === 'father' ? "Father's Name" : ($pop === 'mother' ? "Mother's Name" : '');
+                        @endphp
+                        <div class="f"><span class="f-label">PAN Name Based On {{ $popLabel ? "($popLabel)" : '' }}</span><span class="f-value">{{ $popName }}</span></div>
+                    @endif
                     <div class="f"><span class="f-label">Registration Number</span><span class="f-value">{{ $x($depositoryX, 'registrationNumber') }}</span></div>
                     <div class="f"><span class="f-label">AO Area / Type / Range / No.</span><span class="f-value">{{ $x($depositoryX, 'aoAreaCode') }} / {{ $x($depositoryX, 'aoType') }} / {{ $x($depositoryX, 'aoRangeCode') }} / {{ $x($depositoryX, 'aoNo') }}</span></div>
                 </div>
