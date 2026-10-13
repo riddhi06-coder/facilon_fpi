@@ -876,6 +876,7 @@ $serverErrorsJs = $errors->messages();
                         </select>
                     </div>
                     <div class="fpi-form-group" style="grid-column: span 2"><label class="fpi-label">Name to be printed on PAN Card</label><input class="fpi-input" type="text" name="panName" value="{{ $form['panName'] }}"></div>
+                    @if ($isIndividual)
                     <div class="fpi-form-group" style="grid-column: span 3">
                         <label class="fpi-label">Name to print on PAN Card is of <span class="fpi-req">*</span></label>
                         <div style="display:flex;gap:20px;align-items:center;height:40px">
@@ -883,6 +884,7 @@ $serverErrorsJs = $errors->messages();
                             <label style="display:flex;gap:6px;align-items:center;font-size:13px;color:var(--gray700);cursor:pointer"><input type="radio" name="printOnPan" value="mother" @checked($form['printOnPan'] === 'mother')> Mother's Name</label>
                         </div>
                     </div>
+                    @endif
                     <div class="fpi-form-group"><label class="fpi-label">AO Area Code</label><input class="fpi-input" type="text" name="aoAreaCode" value="{{ $form['aoAreaCode'] }}"></div>
                     <div class="fpi-form-group"><label class="fpi-label">AO Type</label><input class="fpi-input" type="text" name="aoType" value="{{ $form['aoType'] }}"></div>
                     <div class="fpi-form-group"><label class="fpi-label">AO Range Code</label><input class="fpi-input" type="text" name="aoRangeCode" value="{{ $form['aoRangeCode'] }}"></div>
@@ -2398,8 +2400,8 @@ $serverErrorsJs = $errors->messages();
                         msg: 'Name on PAN Card is required.'
                     });
                 }
-                // Applying for PAN: must choose father's or mother's name.
-                if (hp && hp.value === 'no' && !document.querySelector('input[name="printOnPan"]:checked')) {
+                // Individual applying for PAN: must choose father's or mother's name.
+                if (IS_INDIVIDUAL && hp && hp.value === 'no' && !document.querySelector('input[name="printOnPan"]:checked')) {
                     errs.push({
                         name: 'printOnPan',
                         msg: 'Please choose whose name to print on the PAN card.'
