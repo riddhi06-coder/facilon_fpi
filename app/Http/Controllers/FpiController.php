@@ -894,6 +894,8 @@ class FpiController extends Controller
                 'custodianName'   => ['nullable', 'string', 'max:200'],
                 'dpId'            => ['nullable', 'string', 'max:20'],
                 'clientId'        => ['nullable', 'string', 'max:20'],
+                // When applying for a PAN (hasPan = no), the printed name is father's or mother's.
+                'printOnPan'      => ['nullable', 'required_if:hasPan,no', Rule::in(['father', 'mother'])],
             ],
             'additional' => [
                 'primaryContactName'        => ['required', 'string', 'max:150'],
@@ -993,8 +995,6 @@ class FpiController extends Controller
                 'dpId'            => ['required', 'string', 'max:20'],
                 'clientId'        => ['required', 'string', 'max:20'],
                 'hasPan'          => ['required', Rule::in(['yes', 'no'])],
-                // When applying for a PAN (hasPan = no), the printed name is father's or mother's.
-                'printOnPan'      => ['nullable', 'required_if:hasPan,no', Rule::in(['father', 'mother'])],
             ]);
         }
 

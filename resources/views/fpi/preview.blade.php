@@ -413,15 +413,15 @@
                 <div class="grid grid-3">
                     <div class="f"><span class="f-label">Status of Applicant</span><span class="f-value">{{ $x($depositoryX, 'statusApplicant') }}</span></div>
                     <div class="f"><span class="f-label">Name to Print on PAN</span><span class="f-value">{{ $x($depositoryX, 'panName') }}</span></div>
-                    @if ($isIndividual)
-                        @php
-                            $fatherName = trim(implode(' ', array_filter([$indX['indFatherFirstName'] ?? '', $indX['indFatherMiddleName'] ?? '', $indX['indFatherLastName'] ?? ''])));
-                            $motherName = trim(implode(' ', array_filter([$indX['indMotherFirstName'] ?? '', $indX['indMotherMiddleName'] ?? '', $indX['indMotherLastName'] ?? ''])));
-                            $pop = $depositoryX['printOnPan'] ?? '';
-                            $popName = $pop === 'father' ? ($fatherName ?: "Father's Name") : ($pop === 'mother' ? ($motherName ?: "Mother's Name") : '—');
-                            $popLabel = $pop === 'father' ? "Father's Name" : ($pop === 'mother' ? "Mother's Name" : '');
-                        @endphp
-                        <div class="f"><span class="f-label">PAN Name Based On {{ $popLabel ? "($popLabel)" : '' }}</span><span class="f-value">{{ $popName }}</span></div>
+                    @php
+                        $fatherName = trim(implode(' ', array_filter([$indX['indFatherFirstName'] ?? '', $indX['indFatherMiddleName'] ?? '', $indX['indFatherLastName'] ?? ''])));
+                        $motherName = trim(implode(' ', array_filter([$indX['indMotherFirstName'] ?? '', $indX['indMotherMiddleName'] ?? '', $indX['indMotherLastName'] ?? ''])));
+                        $pop = $depositoryX['printOnPan'] ?? '';
+                        $popName = $pop === 'father' ? ($fatherName ?: "Father's Name") : ($pop === 'mother' ? ($motherName ?: "Mother's Name") : '—');
+                        $popLabel = $pop === 'father' ? "Father's Name" : ($pop === 'mother' ? "Mother's Name" : '');
+                    @endphp
+                    @if ($popLabel)
+                        <div class="f"><span class="f-label">PAN Name Based On ({{ $popLabel }})</span><span class="f-value">{{ $popName }}</span></div>
                     @endif
                     <div class="f"><span class="f-label">Registration Number</span><span class="f-value">{{ $x($depositoryX, 'registrationNumber') }}</span></div>
                     <div class="f"><span class="f-label">AO Area / Type / Range / No.</span><span class="f-value">{{ $x($depositoryX, 'aoAreaCode') }} / {{ $x($depositoryX, 'aoType') }} / {{ $x($depositoryX, 'aoRangeCode') }} / {{ $x($depositoryX, 'aoNo') }}</span></div>
